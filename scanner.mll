@@ -51,7 +51,7 @@ rule token = parse
 	| "."		{ CONCAT }
 
 	(* Control Flow *)
-	| "match"	{ OPT }
+	| "match"	{ MATCH }
 	| '?'		{ QMARK }
 
 	(* Control Flow Actions: done, continue, and loop*)
