@@ -85,7 +85,10 @@ rule token = parse
 	(* End of File *)
 	| eof		{ EOF }
 
-	(* Need to put in literal int, literal float, literal string, literal func, and identifiers *)
+	(* Need to put in literal int, literal float, literal string, and identifiers *)
+	| ['0'-'9']+ '.' ['0'-'9']+ as lxm  { LITFLOAT(float_of_string lxm) }
+	| ['0'-'9']+ as lxm { LITINT(int_of_string lxm) }
+	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 
 	(*All others*)
 	| _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
