@@ -91,9 +91,27 @@ rule token = parse
 	| ['0'-'9']+ as lxm { LITINT(int_of_string lxm) }
 	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 
+	(* My attempt at doing strings *)
+	| '"' {STRBEGIN; str lexbuf}
 	(*All others*)
 	| _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
+
+(* Parses the characters of a string *)
+and str = parse
+	'"'	{STREND; token lexbuf}
+	| _ as char {STRCHAR(char)}
+
+(* Handles Escape Characters in strings *)
+and escapechar = parse
+	't'	{ STRCHAR('\t') }
+	'r'	{ STRCHAR('\r') }
+	'n'	{ STRCHAR('\r') } 
+	'\'	{ STRCHAR('\\') }
+	'"'	{ STRCHAR('"') }
+	_ as char { raise (Failure("illegal escape character " ^ Char.escaped char)) }
+
+(* Handles Comments*)
 and comment = parse
 	"*/"	{ token lexbuf }
 	| _	{ comment lexbuf }
