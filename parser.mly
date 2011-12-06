@@ -24,7 +24,7 @@ type <Ast.program> program
 
 program:
 	(*nothing*)			{ [], [] }
-	| program vdecl			{ ($2 :: fst $1), snd $1 }
+	| program vdecl_stmt		{ ($2 :: fst $1), snd $1 }
 	| program fdecl			{ fst $1, ($2 :: snd $1) }
 
 
@@ -39,14 +39,18 @@ param_list_opt:
 	| param_list			{List.rev $1}	
 
 param_list:
-	vdecl				{ [$1] }
+	vdecl				{ [] }
 	| param_list COMMA vdecl 	{ $3 :: $1 }
 
+vdecl_stmt:
+	vdecl ASSIGN expr SEMI		{ Declinit($1, $3) }
+	vdecl SEMI			{ Decl($1) }
+
 vdecl:
-	CONST var_type ID SEMI		{ {	vname = $3;
+	CONST var_type ID		{ {	vname = $3;
 						vtype = $2;
 						vmutable =  Const; } }
-	| var_type ID SEMI		{ {	vname = $3;
+	| var_type ID			{ {	vname = $3;
 						vtype = $2;
 						vmutable =  Mutable; } }
 
@@ -70,6 +74,7 @@ stmt:
 					     { 	match_expr = $3;
 						match_list = List.rev $6 }
 					) }
+	| vdecl_stmt			{ Vdecl($1) }
 	| expr				{ Expr($1) }
 	| PASS SEMI			{ Pass }
 

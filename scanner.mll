@@ -108,7 +108,7 @@ rule token = parse
 (* Parses the characters in a hard string (no escape characters) *)
 and hardstr = parse
 	"'"	{STREND; token lexbuf}
-	| _ as char {(STRCHAR(char); str lexbuf}
+	| _ as char {STRCHAR(char); str lexbuf}
 
 (* Parses the characters of a string *)
 and str = parse

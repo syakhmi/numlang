@@ -15,6 +15,7 @@ type var_decl = {
 type expr =
 	  Litnum of string
 	| Litstring of string
+	| Litfunc of string list * expr
 	| Id of var_decl
 	| Binop of expr * bop * expr
 	| Unop of uop * expr
@@ -32,10 +33,16 @@ type match_command = {
 type match_statement = {
 	match_expr : expr;
 	match_list : match_command list;
-}	
+}
+
+type vdecl_statement = 
+	  Decl of var_decl
+	| Declinit of var_decl * expr	
+
 type stmt = 
 	  Block of stmt list
 	| Match of match_statement
+	| Vdecl of vdecl_statement
 	| Expr of expr
 	| Pass
 
