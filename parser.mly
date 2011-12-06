@@ -76,7 +76,7 @@ match_list:
 	| match_list match_cmd  { $2 :: $1 }
 
 match_command:
-	flow_type match_cond QMARK stmt	{ {	flowtype = $1;
+	flow_type match_cond QMARK stmt	{ {	f_type = $1;
 						matchcmp = fst $2;
 						match_expr = snd $2;
 						match_stmt = $4; }}

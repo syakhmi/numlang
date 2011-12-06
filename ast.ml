@@ -24,7 +24,7 @@ type expr =
 	| Noexpr
 
 type match_command = {
-	flow_type : cftype;
+	f_type : cftype;
 	match_cmp : matchcmptype;
 	match_expr : expr;
 	match_stmt : stmt;
