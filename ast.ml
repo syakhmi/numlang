@@ -6,17 +6,13 @@ type matchcmptype = Eq | Neq | Lt | Leq | Gt | Geq | Any | Default
 type vartype = Num | String | Func 
 type mutab = Const | Mutable
 
-type var_decl = {
-	vname : string;
-	vtype : vartype;
-	vmutable : mutab;
-}
+
 
 type expr =
 	  Litnum of string
 	| Litstring of string
 	| Litfunc of string list * expr
-	| Id of var_decl
+	| Id of string
 	| Binop of expr * bop * expr
 	| Unop of uop * expr
 	| Assign of string * expr
@@ -33,6 +29,13 @@ type match_command = {
 type match_statement = {
 	match_expr : expr;
 	match_list : match_command list;
+}
+
+type var_decl = {
+	vname : string;
+	vtype : vartype;
+	vmutable : mutab;
+	vsize: int;
 }
 
 type vdecl_statement = 
@@ -52,4 +55,4 @@ type func_decl = {
 	body : stmt list;
 }
 
-type program = var_decl list * func_decl list (* global variables, functions*)
+type program = vdecl_stmt list * func_decl list (* global variables, functions*)

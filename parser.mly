@@ -27,7 +27,6 @@ program:
 	| program vdecl_stmt		{ ($2 :: fst $1), snd $1 }
 	| program fdecl			{ fst $1, ($2 :: snd $1) }
 
-
 fdecl:
 	SUB ID LPAREN param_list_opt RPAREN func_stmt_list 
 					{ {	fname = $2;
@@ -49,10 +48,12 @@ vdecl_stmt:
 vdecl:
 	CONST var_type ID		{ {	vname = $3;
 						vtype = $2;
-						vmutable =  Const; } }
+						vmutable =  Const;
+						vsize = [1]; } }
 	| var_type ID			{ {	vname = $3;
 						vtype = $2;
-						vmutable =  Mutable; } }
+						vmutable =  Mutable;
+						vsize = [1]; } }
 
 var_type:
 	NUM 				{ Num }
