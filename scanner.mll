@@ -100,16 +100,17 @@ rule token = parse
 (* Parses the characters of a string *)
 and str = parse
 	'"'	{STREND; token lexbuf}
+	| '\\' {escapechar lexbuf} 
 	| _ as char {STRCHAR(char)}
 
 (* Handles Escape Characters in strings *)
 and escapechar = parse
-	't'	{ STRCHAR('\t') }
-	'r'	{ STRCHAR('\r') }
-	'n'	{ STRCHAR('\r') } 
-	'\'	{ STRCHAR('\\') }
-	'"'	{ STRCHAR('"') }
-	_ as char { raise (Failure("illegal escape character " ^ Char.escaped char)) }
+	't'	{ STRCHAR('\t') ; str lexbuf }
+	| 'r'	{ STRCHAR('\r') ; str lexbuf }
+	| 'n'	{ STRCHAR('\n') ; str lexbuf } 
+	| '\'	{ STRCHAR('\\') ; str lexbuf }
+	| '"'	{ STRCHAR('"') ; str lexbuf }
+	| _ as char { raise (Failure("illegal escape character " ^ Char.escaped char)) }
 
 (* Handles Comments*)
 and comment = parse
