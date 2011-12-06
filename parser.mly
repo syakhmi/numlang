@@ -8,6 +8,7 @@
 %token EOF
 %token <float>	LITFLOAT
 %token <int>	LITINT
+%token <string> LITSTRING
 %token <string>	ID
 
 %right	ASSIGN
@@ -23,49 +24,62 @@
 program:
 	(*nothing*)			{ [], [] }
 	| program vdecl			{ ($2 :: fst $1), snd $1 }
-	| program fdecl			{ (fst $1, ($2 :: snd $1) }
+	| program fdecl			{ fst $1, ($2 :: snd $1) }
 
 
 fdecl:
-	SUB ID LPAREN param_list RPAREN stmt 
+	SUB ID LPAREN param_list_opt RPAREN func_stmt_list 
 					{ {	fname = $2;
 						params = $4;
-						body = $6; } }
+						body = List.rev $6; } }
 
 param_list_opt:
 	(*nothing*)			{ [] }
 	| param_list			{List.rev $1}	
 
 param_list:
-	vdecl				{ [$3] }
+	vdecl				{ [$1] }
 	| param_list COMMA vdecl 	{ $3 :: $1 }
 
 vdecl:
-	CONST var_type ID SEMI		{ ($3, $2, Const) }
-	| var_type ID SEMI		{ ($3, $2, Mutable) }
+	CONST var_type ID SEMI		{ {	vname = $3;
+						vtype = $2;
+						vmutable =  Const; } }
+	| var_type ID SEMI		{ {	vname = $3;
+						vtype = $2;
+						vmutable =  Mutable; } }
 
 var_type:
 	NUM 				{ Num }
 	| STRING 			{ String }
 	| FUNC				{ Func }
 
+func_stmt_list:
+	stmt_list stmt			{ $2 :: $1 }
+	stmt				{ [$1] }
 
 stmt_list:
-	(*nothing*)
-	| stmt_list stmt
+	(*nothing*)			{ [] }
+	| stmt_list stmt		{ $2 :: $1 }
 
 stmt:
-	LBRACE stmt_list RBRACE
+	LBRACE stmt_list RBRACE		{ $2 }
 	| MATCH LPAREN expr RPAREN LBRACE match_list RBRACE
-	| expr
-	| PASS SEMI
+					{ { 	match_expr = $3;
+						match_list = List.rev $6 } }
+	| expr				{ Expr($1) }
+	| PASS SEMI			{ Pass }
+
 
 match_list:
 	(*nothing*)
-	| match_list match_cmd
+	| match_list match_cmd  { $2 :: $1 }
 
 match_command:
-	flow_type match_cond QMARK stmt	{ (
+	flow_type match_cond QMARK stmt	{ {	flowtype = $1;
+						matchcmp = fst $2;
+						match_expr = snd $2;
+						match_stmt = $4; }}
 
 flow_type:
 	(*nothing*)			{ Cont }
@@ -77,7 +91,8 @@ match_cond:
 	match_cmp expr			{ ($1, $2) }
 	| expr				{ (Eq, $2) }
 	| TRUE				{ (Neq, 0) }
-	| ANY				{ (Eq, Any) }
+	| ANY				{ (Any, 0) }
+	| DEFAULT			{ (Default, 0) }
 
 match_cmp:
 	NEQ				{ Neq }
