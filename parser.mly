@@ -6,8 +6,7 @@
 %token MATCH QMARK DONE CONT LOOP ANY TRUE PASS
 %token NUM STRING FUNC SUB CONST INCLUDE POINT
 %token EOF
-%token <float>	LITFLOAT
-%token <int>	LITINT
+%token <string>	LITNUM
 %token <string> LITSTRING
 %token <string>	ID
 

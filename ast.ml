@@ -13,8 +13,7 @@ type var_decl = {
 }
 
 type expr =
-	  Litfloat of float
-	| Litint of int
+	  Litnum of string
 	| Litstring of string
 	| Id of var_decl
 	| Binop of expr * bop * expr
