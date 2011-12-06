@@ -18,6 +18,8 @@
 %left	TIMES DIVIDE MOD MATMULT
 %right	NOT
 
+start program
+type <Ast.program> program
 
 %%
 
@@ -63,10 +65,12 @@ stmt_list:
 	| stmt_list stmt		{ $2 :: $1 }
 
 stmt:
-	LBRACE stmt_list RBRACE		{ $2 }
+	LBRACE stmt_list RBRACE		{ Block($2) }
 	| MATCH LPAREN expr RPAREN LBRACE match_list RBRACE
-					{ { 	match_expr = $3;
-						match_list = List.rev $6 } }
+					{ Match(
+					     { 	match_expr = $3;
+						match_list = List.rev $6 }
+					) }
 	| expr				{ Expr($1) }
 	| PASS SEMI			{ Pass }
 
