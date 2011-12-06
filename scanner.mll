@@ -86,22 +86,35 @@ rule token = parse
 	(* End of File *)
 	| eof		{ EOF }
 
-	(* Need to put in literal int, literal float, literal string, and identifiers *)
+	(* Float Literal *)
 	| ['0'-'9']+ '.' ['0'-'9']+ as lxm  { LITFLOAT(float_of_string lxm) }
+
+	(* Int Literal *)
 	| ['0'-'9']+ as lxm { LITINT(int_of_string lxm) }
+
+	(* String Literal *)
+	| '"' {STRBEGIN; str lexbuf}
+	| "'" {STRBEGIN; hardstr lexbuf}
+
 	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 
+
+
 	(* My attempt at doing strings *)
-	| '"' {STRBEGIN; str lexbuf}
-	(*All others*)
+		(*All others*)
 	| _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
+
+(* Parses the characters in a hard string (no escape characters) *)
+and hardstr = parse
+	"'"	{STREND; token lexbuf}
+	| _ as char {(STRCHAR(char); str lexbuf}
 
 (* Parses the characters of a string *)
 and str = parse
 	'"'	{STREND; token lexbuf}
 	| '\\' {escapechar lexbuf} 
-	| _ as char {STRCHAR(char)}
+	| _ as char {STRCHAR(char); str lexbuf}
 
 (* Handles Escape Characters in strings *)
 and escapechar = parse
