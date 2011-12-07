@@ -22,7 +22,8 @@ rule token = parse
 
 	
 	(* Matrix Braces *)
-	| "m["		{ MATRIX }
+	| "m["		{ NEWMATRIX }
+	| "m{"		{ MATRIX }
 
 	(* Terminator: Semi-colon*)	
 	| ';'		{ SEMI }
