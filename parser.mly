@@ -90,9 +90,9 @@ stmt:
 						match_list = List.rev $6 }
 					) }
 	| vdecl_stmt			{ Vdecl($1) }
-	| ID ASSIGN expr	{ Assign($1, $3) }
-	| expr SEMI			{ Expr($1) }
-	| PASS SEMI			{ Pass }
+	| ID ASSIGN expr SEMI	{ Assign($1, $3) }
+	| expr SEMI				{ Expr($1) }
+	| PASS SEMI				{ Pass }
 
 
 match_list:
