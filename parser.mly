@@ -120,5 +120,36 @@ match_cmp:
 	| GEQ				{ Geq }
 
 (*Define Expression Here*)
+expr :
+	  LITINT				{ Litnum($1) }
+	| LITFLOAT				{ Litnum($1) }
+	| STRBEGIN strchar_list STREND		{ Litstring($2) }
+	| LPAREN … RPAREN POINT … 		{ Litfunc($ ) }
+	| ID					{ Id($1) }
+	| expr PLUS expr			{ Binop($1, Add, $3) }
+	| expr MINUS expr			{ Binop($1, Sub, $3) }
+	| expr TIMES expr			{ Binop($1, Mult, $3) }
+	| expr DIVIDE expr			{ Binop($1, Div, $3) }
+	| expr MOD expr				{ Binop($1, Mod, $3) }
+	| expr MATMULT expr			{ Binop($1, MatMult, $3) }
+	| expr EQ expr				{ Binop($1, Eq, $3) }
+	| expr NEQ expr				{ Binop($1, Neq, $3) }
+	| expr LT expr				{ Binop($1, Lt, $3) }
+	| expr LEQ expr				{ Binop($1, Leq, $3) }
+	| expr GT expr				{ Binop($1, Gt, $3) }
+	| expr GEQ expr				{ Binop($1, Geq, $3) }
+	| expr CONCAT expr			{ Binop($1, Concat, $3) }
+	| MINUS expr				{ Unop(Uminus, $2) }
+	| NOT expr				{ Unop(Not, $2) }
+	| LPAREN expr RPAREN			{ $2 }
+	| FLOG LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Flog, $3))}
+	| FLN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fln, $3))}
+	| FCOS LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fsin, $3))}
+	| FSIN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
+	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
+	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }
 
+strchar_list:
+	(* nothing *)			{ “” }
+	| strchar_list STRCHAR		{ $1 ^ (Char.escaped $2) }
 
