@@ -48,17 +48,18 @@ vdecl_stmt:
 vdecl:
 	CONST var_type ID		{ {	vname = $3;
 						vtype = $2;
-						vmutable =  Const;
-						vsize = [1]; } }
+						vmutable =  Const;} }
 	| var_type ID			{ {	vname = $3;
 						vtype = $2;
-						vmutable =  Mutable;
-						vsize = [1]; } }
+						vmutable =  Mutable; } }
+vartype:
+	basictype			{ $1 }
+	| vartype LBRACE RBRACE		{ (fst $1, snd $1 + 1) }
 
 var_type:
-	NUM 				{ Num }
-	| STRING 			{ String }
-	| FUNC				{ Func }
+	NUM 				{ ( Num, 0 ) }
+	| STRING 			{ ( String, 0) }
+	| FUNC				{ ( Func, 0) }
 
 func_stmt_list:
 	stmt_list stmt			{ $2 :: $1 }

@@ -6,8 +6,6 @@ type matchcmptype = Eq | Neq | Lt | Leq | Gt | Geq | Any | Default
 type vartype = Num | String | Func 
 type mutab = Const | Mutable
 
-
-
 type expr =
 	  Litnum of string
 	| Litstring of string
@@ -33,9 +31,8 @@ type match_statement = {
 
 type var_decl = {
 	vname : string;
-	vtype : vartype;
+	vtype : vartype * int;
 	vmutable : mutab;
-	vsize: int;
 }
 
 type vdecl_statement = 
