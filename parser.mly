@@ -1,7 +1,7 @@
 %{ open Ast %}
 
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET LCSUB RCSUB 
-%token MATRIX SEMI COMMA 
+%token NEWMATRIX MATRIX SEMI COMMA 
 %token PLUS MINUS TIMES DIVIDE EXP MOD MATMULT FLOG FLN FCOS FSIN
 %token ASSIGN EQ NEQ NOT LT LEQ GT GEQ CONCAT
 %token MATCH QMARK DONE CONT LOOP ANY TRUE DEFAULT PASS
@@ -156,6 +156,14 @@ expr :
 	| FSIN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
 	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
 	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }
+	(*Put work for arrays and matrices here*)
+	| basic_type LBRACKET lit_int_list RBRACKET
+						{ Newarr($1, List.rev $3) }
+	| LBRACE list_expr_list_opt RBRACE	{ Litarr(List.rev $2)}
+	| NEWMATRIX LITINT COMMA  LITINT RBRACKET
+						{ Newmatrix($2, $4) }
+	| MATRIX matrix_rows_list RBRACE	{ Litmatrix(List.rev $2) }
+
 
 strchar_list:
 	(* nothing *)			{ "" }
@@ -191,3 +199,24 @@ func_expr:
 	| FSIN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
 	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
 
+lit_int_list:
+	  LITINT			{[$1]}
+	| lit_int_list			{ $2 :: $1 }
+
+lit_expr_list_opt:
+	  (*Nothing*)			{[]}
+	| list_expr_list expr		{$2 :: $1}
+
+list_expr_list:
+	  expr				{[$1]}
+	| list_expr_list expr		{ $2 :: $1}
+
+matrix_rows_list:
+	  matrix_row_contents		{[List.rev $1]}
+	| matrix_rows_list SEMI matrix_rows_contents
+					{ $3 :: $1 }
+
+matrix_rows_contents:
+	  LITINT			{ [int_of_string $1] }
+	| matrix_row_contents COMMA LITINT
+					{ (int_of_string $3) :: $1 }

@@ -24,7 +24,9 @@ type expr =
 	| Litstring of string
 	| Litfunc of string list * func_expr
 	| Litarr of expr list
+	| Litmatrix of string list list
 	| Newarr of vartype * int list
+	| Newmatrix of int * int
 	| Id of string
 	| Binop of expr * bop * expr
 	| Unop of uop * expr

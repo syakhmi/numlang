@@ -1,7 +1,5 @@
 { open Parser }
 
-(*Guys, I am going to add some stuff in that seem to make sense. Lemme know if it looks wrong. - Dan*)
-
 rule token = parse
 	(* Parses as another token *)
 	['' '\t' '\r' '\n'] { token lexbuf }
@@ -17,8 +15,8 @@ rule token = parse
 	| '}'		{ RBRACE }
 	| '['		{ LBRACKET }
 	| ']'		{ RBRACKET }
-	| "<<"		{ LCFUNC }
-	| ">>"		{ RCFUNC }
+	| "<<"		{ LCSUB }
+	| ">>"		{ RCSUB }
 
 	
 	(* Matrix Braces *)
