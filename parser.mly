@@ -90,6 +90,7 @@ stmt:
 						match_list = List.rev $6 }
 					) }
 	| vdecl_stmt			{ Vdecl($1) }
+	| ID ASSIGN expr	{ Assign($1, $3) }
 	| expr SEMI			{ Expr($1) }
 	| PASS SEMI			{ Pass }
 
@@ -157,7 +158,7 @@ expr :
 	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }
 
 strchar_list:
-	(* nothing *)			{ “” }
+	(* nothing *)			{ "" }
 	| strchar_list STRCHAR		{ $1 ^ (Char.escaped $2) }
 
 func_param_list:
