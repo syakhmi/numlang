@@ -23,6 +23,7 @@ type expr =
 	  Litnum of string
 	| Litstring of string
 	| Litfunc of string list * func_expr
+	| Litarr of expr list
 	| Id of string
 	| Binop of expr * bop * expr
 	| Unop of uop * expr
