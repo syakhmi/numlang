@@ -87,10 +87,10 @@ rule token = parse
 	| eof		{ EOF }
 
 	(* Float Literal *)
-	| ['0'-'9']+ '.' ['0'-'9']+ as lxm  { LITFLOAT(float_of_string lxm) }
+	| ['0'-'9']* '.' ['0'-'9']+ as lxm  { LITFLOAT(lxm) }
 
 	(* Int Literal *)
-	| ['0'-'9']+ as lxm { LITINT(int_of_string lxm) }
+	| ['0'-'9']+ '.'? as lxm { LITINT(lxm) }
 
 	(* String Literal *)
 	| '"' {STRBEGIN; str lexbuf}
