@@ -60,11 +60,11 @@ vdecl:
 	| var_type ID			{ {	vname = $3;
 						vtype = $2;
 						vmutable =  Mutable; } }
-vartype:
-	basictype			{ $1 }
+var_type:
+	basic_type			{ $1 }
 	| vartype LBRACE RBRACE		{ (fst $1, snd $1 + 1) }
 
-var_type:
+basic_type:
 	NUM 				{ ( Num, 0 ) }
 	| STRING 			{ ( String, 0) }
 	| FUNC				{ ( Func, 0) }
