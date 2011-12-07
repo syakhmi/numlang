@@ -40,6 +40,14 @@ param_list_opt:
 param_list:
 	vdecl				{ [] }
 	| param_list COMMA vdecl 	{ $3 :: $1 }
+	
+param_list_call_opt:
+	(*nothing*)			{ [] }
+	| param_list_call			{List.rev $1}	
+
+param_list_call:
+	expr				{ [] }
+	| param_list_call COMMA expr 	{ $3 :: $1 }
 
 vdecl_stmt:
 	vdecl ASSIGN expr SEMI		{ Declinit($1, $3) }
