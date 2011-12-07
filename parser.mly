@@ -64,6 +64,10 @@ var_type:
 	basic_type			{ $1 }
 	| vartype LBRACE RBRACE		{ (fst $1, snd $1 + 1) }
 
+dimension_list:
+    LITINT							{ [int_of_str $1] }
+    | dimension_list COMMA LITINT	{ $1::(int_of_str $3) }
+
 basic_type:
 	NUM 				{ ( Num, 0 ) }
 	| STRING 			{ ( String, 0) }

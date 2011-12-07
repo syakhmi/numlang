@@ -47,9 +47,6 @@ rule token = parse
 
 	(* Assignment *)
 	| '='		{ ASSIGN }
-	
-	(* New (for array) *)
-	| "new"		{ NEW }
 
 	(* Logic: Equals, Not Equals, Negation, Less Than, Less than or Equal, Greater Than, and Greater Than or Equal *)
 	| "=="		{ EQ }
