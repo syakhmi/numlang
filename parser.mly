@@ -1,9 +1,10 @@
 %{ open Ast %}
 
-%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET MATRIX SEMI COMMA 
-%token PLUS MINUS TIMES DIVIDE MOD MATMULT 
+%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET LCSUB RCSUB 
+%token MATRIX SEMI COMMA 
+%token PLUS MINUS TIMES DIVIDE EXP MOD MATMULT FLOG FLN FCOS FSIN
 %token ASSIGN EQ NEQ NOT LT LEQ GT GEQ CONCAT
-%token MATCH QMARK DONE CONT LOOP ANY TRUE PASS
+%token MATCH QMARK DONE CONT LOOP ANY TRUE DEFAULT PASS
 %token NUM STRING FUNC SUB CONST INCLUDE POINT
 %token EOF
 %token <string>	LITNUM
@@ -62,7 +63,7 @@ vdecl:
 						vmutable =  Mutable; } }
 var_type:
 	basic_type			{ $1 }
-	| vartype LBRACE RBRACE		{ (fst $1, snd $1 + 1) }
+	| vartype LBRACKET RBRACKET	{ (fst $1, snd $1 + 1) }
 
 basic_type:
 	NUM 				{ ( Num, 0 ) }
@@ -124,12 +125,14 @@ expr :
 	  LITINT				{ Litnum($1) }
 	| LITFLOAT				{ Litnum($1) }
 	| STRBEGIN strchar_list STREND		{ Litstring($2) }
-	| LPAREN … RPAREN POINT … 		{ Litfunc($ ) }
+	| LPAREN func_param_list RPAREN POINT func_expr
+				 		{ Litfunc(List.rev $2,  ) }
 	| ID					{ Id($1) }
 	| expr PLUS expr			{ Binop($1, Add, $3) }
 	| expr MINUS expr			{ Binop($1, Sub, $3) }
 	| expr TIMES expr			{ Binop($1, Mult, $3) }
 	| expr DIVIDE expr			{ Binop($1, Div, $3) }
+	| expr EXP expr				{ Binop($1, Exp, $3) }
 	| expr MOD expr				{ Binop($1, Mod, $3) }
 	| expr MATMULT expr			{ Binop($1, MatMult, $3) }
 	| expr EQ expr				{ Binop($1, Eq, $3) }
@@ -152,4 +155,34 @@ expr :
 strchar_list:
 	(* nothing *)			{ “” }
 	| strchar_list STRCHAR		{ $1 ^ (Char.escaped $2) }
+
+func_param_list:
+	  ID				{ [$1] }
+	| func_param_list COMMA ID	{ $3 :: $1 }
+
+func_expr:
+	  LITINT				{ Litnum($1) }
+	| LITFLOAT				{ Litnum($1) }
+	| ID					{ Id($1) }
+	| func_expr PLUS func_expr		{ Binop($1, Add, $3) }
+	| func_expr MINUS func_expr		{ Binop($1, Sub, $3) }
+	| func_expr TIMES func_expr		{ Binop($1, Mult, $3) }
+	| func_expr DIVIDE func_expr		{ Binop($1, Div, $3) }
+	| func_expr EXP func_expr		{ Binop($1, Exp, $3) }
+	| func_expr MOD func_expr		{ Binop($1, Mod, $3) }
+	| func_expr MATMULT func_expr		{ Binop($1, MatMult, $3) }
+	| func_expr EQ func_expr		{ Binop($1, Eq, $3) }
+	| func_expr NEQ func_expr		{ Binop($1, Neq, $3) }
+	| func_expr LT func_expr		{ Binop($1, Lt, $3) }
+	| func_expr LEQ func_expr		{ Binop($1, Leq, $3) }
+	| func_expr GT func_expr		{ Binop($1, Gt, $3) }
+	| func_expr GEQ func_xpr		{ Binop($1, Geq, $3) }
+	| MINUS func_expr			{ Unop(Uminus, $2) }
+	| NOT func_expr				{ Unop(Not, $2) }
+	| LPAREN func_expr RPAREN		{ $2 }
+	| FLOG LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Flog, $3))}
+	| FLN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fln, $3))}
+	| FCOS LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fsin, $3))}
+	| FSIN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
+	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
 
