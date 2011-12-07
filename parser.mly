@@ -83,16 +83,16 @@ stmt_list:
 	| stmt_list stmt		{ $2 :: $1 }
 
 stmt:
-	LBRACE stmt_list RBRACE		{ Block($2) }
+	LBRACE stmt_list RBRACE		{ Block(List.rev $2) }
 	| MATCH LPAREN expr RPAREN LBRACE match_list RBRACE
 					{ Match(
 					     { 	match_expr = $3;
 						match_list = List.rev $6 }
 					) }
 	| vdecl_stmt			{ Vdecl($1) }
-	| expr					{ Expr($1) }
-	| ID ASSIGN expr		{ Assign($1, $3) }
-	| PASS SEMI				{ Pass }
+	| ID ASSIGN expr	{ Assign($1, $3) }
+	| expr SEMI			{ Expr($1) }
+	| PASS SEMI			{ Pass }
 
 
 match_list:
@@ -131,7 +131,7 @@ expr :
 	| LITFLOAT				{ Litnum($1) }
 	| STRBEGIN strchar_list STREND		{ Litstring($2) }
 	| LPAREN func_param_list RPAREN POINT func_expr
-				 		{ Litfunc(List.rev $2,  ) }
+				 		{ Litfunc(List.rev $2, $5 ) }
 	| ID					{ Id($1) }
 	| expr PLUS expr			{ Binop($1, Add, $3) }
 	| expr MINUS expr			{ Binop($1, Sub, $3) }
