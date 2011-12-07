@@ -26,7 +26,6 @@ type expr =
 	| Id of string
 	| Binop of expr * bop * expr
 	| Unop of uop * expr
-	| Assign of string * expr
 	| Call of string * expr list
 	| FCall of func_call
 	| Noexpr
@@ -53,8 +52,9 @@ type vdecl_statement =
 	  Decl of var_decl
 	| Declinit of var_decl * expr	
 
-type stmt = 
-	  Block of stmt list
+type stmt = 	
+	Assign of string * expr
+	| Block of stmt list
 	| Match of match_statement
 	| Vdecl of vdecl_statement
 	| Expr of expr
