@@ -91,6 +91,7 @@ stmt:
 					) }
 	| vdecl_stmt			{ Vdecl($1) }
 	| expr				{ Expr($1) }
+	| ID ASSIGN expr	{ Assign($1, $3) }
 	| PASS SEMI			{ Pass }
 
 
