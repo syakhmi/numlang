@@ -158,7 +158,7 @@ expr :
 	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }
 
 strchar_list:
-	(* nothing *)			{ “” }
+	(* nothing *)			{ "" }
 	| strchar_list STRCHAR		{ $1 ^ (Char.escaped $2) }
 
 func_param_list:
