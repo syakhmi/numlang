@@ -1,20 +1,34 @@
-type bop = Add | Sub | Mult | Div | Mod | MatMult | Eq | Neq | Lt | Leq | Gt 
-	 | Geq | Concat
+type fbop = Add | Sub | Mult | Div | Exp | Mod | MatMult
+	  | Eq | Neq | Lt | Leq | Gt | Geq
+type bop = fbop | Concat
 type uop = Uminus | Not
+type fkeyfuncs =  Flog | Fln | Fcos | Fsin
 type cftype = Cont | Done | Loop
 type matchcmptype = Eq | Neq | Lt | Leq | Gt | Geq | Any | Default
 type vartype = Num | String | Func 
 type mutab = Const | Mutable
 
+type func_call =
+	  KeyFuncCall of fkeyfuncs * string list
+	| FuncCall of string * string list
+
+type func_expr =
+	| Litnum of string
+	| Id of string
+	| Fbinop of func_expr * fbop * func_expr
+	| Funop of unop * func_expr
+	| FCall of func_call
+
 type expr =
 	  Litnum of string
 	| Litstring of string
-	| Litfunc of string list * expr
+	| Litfunc of string list * func_expr
 	| Id of string
 	| Binop of expr * bop * expr
 	| Unop of uop * expr
 	| Assign of string * expr
 	| Call of string * expr list
+	| FCall of func_call
 	| Noexpr
 
 type match_command = {

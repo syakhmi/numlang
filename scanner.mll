@@ -17,6 +17,9 @@ rule token = parse
 	| '}'		{ RBRACE }
 	| '['		{ LBRACKET }
 	| ']'		{ RBRACKET }
+	| "<<"		{ LCFUNC }
+	| ">>"		{ RCFUNC }
+
 	
 	(* Matrix Braces *)
 	| "m["		{ MATRIX }
@@ -32,8 +35,15 @@ rule token = parse
 	| '-'		{ MINUS }
 	| '*'		{ TIMES }
 	| '/'		{ DIVIDE }
+	| '^'		{ EXP }
 	| '%'		{ MOD }
 	| '#'		{ MATMULT }
+
+	(* Special Functions For Functions *)
+	| "log"		{ FLOG }
+	| "ln"		{ FLN }
+	| "cos"		{ FCOS }
+	| "sin"		{ FSIN }
 
 	(* Assignment *)
 	| '='		{ ASSIGN }
@@ -87,10 +97,10 @@ rule token = parse
 	| eof		{ EOF }
 
 	(* Float Literal *)
-	| ['0'-'9']+ '.' ['0'-'9']+ as lxm  { LITFLOAT(float_of_string lxm) }
+	| ['0'-'9']+ '.' ['0'-'9']+ as lxm  { LITNUM(float_of_string lxm) }
 
 	(* Int Literal *)
-	| ['0'-'9']+ as lxm { LITINT(int_of_string lxm) }
+	| ['0'-'9']+ as lxm { LITNUM(int_of_string lxm) }
 
 	(* String Literal *)
 	| '"' {STRBEGIN; str lexbuf}
