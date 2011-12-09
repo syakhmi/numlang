@@ -156,7 +156,7 @@ expr :
 	| basic_type LBRACKET lit_int_list RBRACKET
 						{ Newarr($1, List.rev $3) }
 	| LBRACE list_expr_list_opt RBRACE	{ Litarr(List.rev $2)}
-	| NEWMATRIX LITINT COMMA  LITINT RBRACKET
+	| NEWMATRIX expr COMMA  expr RBRACKET
 						{ Newmatrix($2, $4) }
 	| MATRIX matrix_rows_list RBRACE	{ Litmatrix(List.rev $2) }
 
@@ -213,6 +213,6 @@ matrix_rows_list:
 					{ $3 :: $1 }
 
 matrix_rows_contents:
-	  LITINT			{ [int_of_string $1] }
-	| matrix_row_contents COMMA LITINT
-					{ (int_of_string $3) :: $1 }
+	  expr			{ [$1] }
+	| matrix_row_contents COMMA expr
+					{ $3 :: $1 }
