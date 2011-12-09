@@ -2,7 +2,7 @@
 
 rule token = parse
 	(* Parses as another token *)
-	['' '\t' '\r' '\n'] { token lexbuf }
+	[' ' '\t' '\r' '\n'] { token lexbuf }
 	(* Starts treating text as comments *)
 	| "/*"		{ comment lexbuf }
 	(* Starts treating text as a line comment *)
