@@ -26,7 +26,7 @@ type expr =
 	| Litarr of expr list
 	| Litmatrix of expr list
 	| Newarr of vartype * expr list
-	| Newmatrix of expr list
+	| Newmatrix of expr * expr
 	| Id of string
 	| Binop of expr * bop * expr
 	| Unop of uop * expr
