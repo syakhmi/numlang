@@ -130,7 +130,7 @@ and escapechar = parse
 	't'	{ STRCHAR('\t') ; str lexbuf }
 	| 'r'	{ STRCHAR('\r') ; str lexbuf }
 	| 'n'	{ STRCHAR('\n') ; str lexbuf } 
-	| '\'	{ STRCHAR('\\') ; str lexbuf }
+	| '\\'	{ STRCHAR('\\') ; str lexbuf }
 	| '"'	{ STRCHAR('"') ; str lexbuf }
 	| _ as char { raise (Failure("illegal escape character " ^ Char.escaped char)) }
 
