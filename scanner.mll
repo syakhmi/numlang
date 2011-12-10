@@ -96,10 +96,10 @@ rule token = parse
 	| eof		{ EOF }
 
 	(* Float Literal *)
-	| ['0'-'9']+ '.' ['0'-'9']+ as lxm  { LITNUM(float_of_string lxm) }
+	| ['0'-'9']+ '.' ['0'-'9']+ as lxm  { LITFLOAT(lxm) }
 
 	(* Int Literal *)
-	| ['0'-'9']+ as lxm { LITNUM(int_of_string lxm) }
+	| ['0'-'9']+ as lxm { LITINT(lxm) }
 
 	(* String Literal *)
 	| '"' {STRBEGIN; str lexbuf}
