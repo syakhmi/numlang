@@ -1,6 +1,6 @@
 %{ open Ast %}
 
-%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET LCSUB RCSUB 
+%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET LCSUB RCSUB PIPE
 %token NEWMATRIX MATRIX NUMLIST STRLIST FUNLIST SEMI COMMA 
 %token PLUS MINUS TIMES DIVIDE EXP MOD MATMULT FLOG FLN FCOS FSIN
 %token ASSIGN EQ NEQ NOT LT LEQ GT GEQ CONCAT
@@ -96,7 +96,7 @@ expr :
 	  LITINT				{ Litnum($1) }
 	| LITFLOAT				{ Litnum($1) }
 	| STRBEGIN strchar_list STREND		{ Litstring($2) }
-	| LCSUB func_param_list RCSUB POINT LCSUB func_expr RCSUB
+	| PIPE func_param_list PIPE POINT PIPE func_expr PIPE
 				 		{ Litfunc(List.rev $2, $6 ) }
 	| ID					{ Id($1) }
 	| expr PLUS expr			{ Binop($1, Add, $3) }
