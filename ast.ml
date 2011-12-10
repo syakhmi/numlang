@@ -1,31 +1,31 @@
-type fbop = Add | Sub | Mult | Div | Exp | Mod | MatMult
-	  | Eq | Neq | Lt | Leq | Gt | Geq
+type fbop = FAdd | FSub | FMult | FDiv | FExp | FMod | FMatMult
+	  | FEq | FNeq | FLt | FLeq | FGt | FGeq
 type bop = 	Add | Sub | Mult | Div | Exp | Mod | MatMult
 		  | Eq | Neq | Lt | Leq | Gt | Geq | Concat
 type uop = Uminus | Not
 type fkeyfuncs =  Flog | Fln | Fcos | Fsin
 type cftype = Cont | Done | Loop
-type matchcmptype = Eq | Neq | Lt | Leq | Gt | Geq | Any | Default
+type matchcmptype = Meq | Mneq | Mlt | Mleq | Mgt | Mgeq | Any | Default
 type vartype = Num | String | Func 
 type mutab = Const | Mutable
 
 type func_call =
-	  KeyFuncCall of fkeyfuncs * string list
-	| FuncCall of string * string list
+	  KeyFuncCall of fkeyfuncs * expr list
+	| FuncCall of string * expr list
 
-type func_expr =
-	| Litnum of string
-	| Id of string
-	| Fbinop of func_expr * fbop * func_expr
-	| Funop of uop * func_expr
-	| FCall of func_call
+and func_expr =
+	| FLitnum of string
+	| FId of string
+	| FBinop of func_expr * fbop * func_expr
+	| FUnop of uop * func_expr
+	| FFCall of func_call
 
-type expr =
+and expr =
 	  Litnum of string
 	| Litstring of string
 	| Litfunc of string list * func_expr
 	| Litarr of vartype * expr list
-	| Litmatrix of expr list
+	| Litmatrix of expr list list
 	| Newarr of vartype * expr list
 	| Newmatrix of expr * expr
 	| Id of string
@@ -35,7 +35,7 @@ type expr =
 	| FCall of func_call
 	| Noexpr
 
-type stmt = 	
+and stmt = 	
 	Assign of string * expr
 	| Block of stmt list
 	| Match of match_statement

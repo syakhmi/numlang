@@ -122,7 +122,7 @@ expr :
 	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }
 	/*Put work for arrays and matrices here*/
 	| basic_type LBRACE param_list_call RBRACE
-						{ Newarr($1, List.rev $3) }
+						{ Newarr(fst $1, List.rev $3) }
 	| NUMLIST list_expr_list_opt RBRACE	{ Litarr(Num, List.rev $2)}
 	| STRLIST list_expr_list_opt RBRACE	{ Litarr(String, List.rev $2)}
 	| FUNLIST list_expr_list_opt RBRACE	{ Litarr(Func, List.rev $2)}
@@ -136,30 +136,30 @@ func_param_list:
 	| func_param_list COMMA ID	{ $3 :: $1 }
 	
 func_expr:
-	  LITINT				{ Litnum($1) }
-	| LITFLOAT				{ Litnum($1) }
-	| ID					{ Id($1) }
-	| func_expr PLUS func_expr		{ Binop($1, Add, $3) }
-	| func_expr MINUS func_expr		{ Binop($1, Sub, $3) }
-	| func_expr TIMES func_expr		{ Binop($1, Mult, $3) }
-	| func_expr DIVIDE func_expr		{ Binop($1, Div, $3) }
-	| func_expr EXP func_expr		{ Binop($1, Exp, $3) }
-	| func_expr MOD func_expr		{ Binop($1, Mod, $3) }
-	| func_expr MATMULT func_expr		{ Binop($1, MatMult, $3) }
-	| func_expr EQ func_expr		{ Binop($1, Eq, $3) }
-	| func_expr NEQ func_expr		{ Binop($1, Neq, $3) }
-	| func_expr LT func_expr		{ Binop($1, Lt, $3) }
-	| func_expr LEQ func_expr		{ Binop($1, Leq, $3) }
-	| func_expr GT func_expr		{ Binop($1, Gt, $3) }
-	| func_expr GEQ func_expr		{ Binop($1, Geq, $3) }
-	| MINUS func_expr			{ Unop(Uminus, $2) }
-	| NOT func_expr				{ Unop(Not, $2) }
+	  LITINT				{ FLitnum($1) }
+	| LITFLOAT				{ FLitnum($1) }
+	| ID					{ FId($1) }
+	| func_expr PLUS func_expr		{ FBinop($1, FAdd, $3) }
+	| func_expr MINUS func_expr		{ FBinop($1, FSub, $3) }
+	| func_expr TIMES func_expr		{ FBinop($1, FMult, $3) }
+	| func_expr DIVIDE func_expr		{ FBinop($1, FDiv, $3) }
+	| func_expr EXP func_expr		{ FBinop($1, FExp, $3) }
+	| func_expr MOD func_expr		{ FBinop($1, FMod, $3) }
+	| func_expr MATMULT func_expr		{ FBinop($1, FMatMult, $3) }
+	| func_expr EQ func_expr		{ FBinop($1, FEq, $3) }
+	| func_expr NEQ func_expr		{ FBinop($1, FNeq, $3) }
+	| func_expr LT func_expr		{ FBinop($1, FLt, $3) }
+	| func_expr LEQ func_expr		{ FBinop($1, FLeq, $3) }
+	| func_expr GT func_expr		{ FBinop($1, FGt, $3) }
+	| func_expr GEQ func_expr		{ FBinop($1, FGeq, $3) }
+	| MINUS func_expr			{ FUnop(Uminus, $2) }
+	| NOT func_expr				{ FUnop(Not, $2) }
 	| LPAREN func_expr RPAREN		{ $2 }
-	| FLOG LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Flog, $3))}
-	| FLN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fln, $3))}
-	| FCOS LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fsin, $3))}
-	| FSIN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
-	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
+	| FLOG LPAREN param_list_call RPAREN	{ FFCall(KeyFuncCall(Flog, $3))}
+	| FLN LPAREN param_list_call RPAREN	{ FFCall(KeyFuncCall(Fln, $3))}
+	| FCOS LPAREN param_list_call RPAREN	{ FFCall(KeyFuncCall(Fsin, $3))}
+	| FSIN LPAREN param_list_call RPAREN	{ FFCall(KeyFuncCall(Fcos, $3))}
+	| ID LPAREN param_list_call RPAREN	{ FFCall(FuncCall($1, $3))}
 
 list_expr_list_opt:
 	  /*Nothing*/			{[]}
@@ -185,7 +185,7 @@ match_list:
 
 match_cmd:
 	flow_type match_cond QMARK stmt	{ {	f_type = $1;
-						matchcmp = fst $2;
+						match_cmp = fst $2;
 						match_expr = snd $2;
 						match_stmt = $4; }}
 
@@ -197,14 +197,14 @@ flow_type:
 
 match_cond:
 	match_cmp expr			{ ($1, $2) }
-	| expr				{ (Eq, $1) }
-	| TRUE				{ (Neq, 0) }
-	| ANY				{ (Any, 0) }
-	| DEFAULT			{ (Default, 0) }
+	| expr				{ (Meq, $1) }
+	| TRUE				{ (Mneq, "0"}
+	| ANY				{ (Any, "0") }
+	| DEFAULT			{ (Default, "0") }
 
 match_cmp:
-	NEQ				{ Neq }
-	| LT				{ Lt }
-	| LEQ				{ Leq }
-	| GT				{ Gt }
-	| GEQ				{ Geq }
+	NEQ				{ Mneq }
+	| LT				{ Mlt }
+	| LEQ				{ Mleq }
+	| GT				{ Mgt }
+	| GEQ				{ Mgeq }
