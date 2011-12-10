@@ -23,7 +23,7 @@ type expr =
 	  Litnum of string
 	| Litstring of string
 	| Litfunc of string list * func_expr
-	| Litarr of expr list
+	| Litarr of vartype * expr list
 	| Litmatrix of expr list
 	| Newarr of vartype * expr list
 	| Newmatrix of expr * expr
