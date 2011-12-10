@@ -46,12 +46,12 @@ type stmt =
 and match_command = {
 	f_type : cftype;
 	match_cmp : matchcmptype;
-	match_top_expr : expr;
+	match_expr : expr;
 	match_stmt : stmt;
 }
 
 and match_statement = {
-	match_expr : expr;
+	match_top_expr : expr;
 	match_list : match_command list;
 }
 

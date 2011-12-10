@@ -11,8 +11,6 @@
 %token <string>	LITFLOAT
 %token <string> LITSTRING
 %token <string>	ID
-%token <char> STRCHAR
-%token STRBEGIN STREND
 
 %right	ASSIGN
 %left	EQ NEQ
@@ -95,7 +93,7 @@ stmt:
 expr :
 	  LITINT				{ Litnum($1) }
 	| LITFLOAT				{ Litnum($1) }
-	| STRBEGIN strchar_list STREND		{ Litstring($2) }
+	| LITSTRING				{ Litstring($1) }
 	| PIPE func_param_list PIPE POINT PIPE func_expr PIPE
 				 		{ Litfunc(List.rev $2, $6 ) }
 	| ID					{ Id($1) }
@@ -133,10 +131,6 @@ expr :
 						{ Newmatrix($2, $4) }
 	| MATRIX matrix_rows_list RBRACE	{ Litmatrix(List.rev $2) }
 
-strchar_list:
-	/* nothing */			{ "" }
-	| strchar_list STRCHAR		{ $1 ^ (Char.escaped $2) }
-	
 func_param_list:
 	  ID				{ [$1] }
 	| func_param_list COMMA ID	{ $3 :: $1 }
