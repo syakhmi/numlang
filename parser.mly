@@ -83,7 +83,7 @@ stmt:
 	LBRACE stmt_list RBRACE		{ Block(List.rev $2) }
 	| MATCH LPAREN expr RPAREN LBRACE match_list RBRACE
 					{ Match(
-					     { 	match_expr = $3;
+					     { 	match_top_expr = $3;
 						match_list = List.rev $6 }
 					) }
 	| vdecl_stmt SEMI			{ Vdecl($1) }

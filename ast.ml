@@ -1,6 +1,7 @@
 type fbop = Add | Sub | Mult | Div | Exp | Mod | MatMult
 	  | Eq | Neq | Lt | Leq | Gt | Geq
-type bop = fbop | Concat
+type bop = 	Add | Sub | Mult | Div | Exp | Mod | MatMult
+		  | Eq | Neq | Lt | Leq | Gt | Geq | Concat
 type uop = Uminus | Not
 type fkeyfuncs =  Flog | Fln | Fcos | Fsin
 type cftype = Cont | Done | Loop
@@ -16,7 +17,7 @@ type func_expr =
 	| Litnum of string
 	| Id of string
 	| Fbinop of func_expr * fbop * func_expr
-	| Funop of unop * func_expr
+	| Funop of uop * func_expr
 	| FCall of func_call
 
 type expr =
@@ -34,39 +35,39 @@ type expr =
 	| FCall of func_call
 	| Noexpr
 
-type match_command = {
+type stmt = 	
+	Assign of string * expr
+	| Block of stmt list
+	| Match of match_statement
+	| Vdecl of vdecl_stmt
+	| Expr of expr
+	| Pass
+
+and match_command = {
 	f_type : cftype;
 	match_cmp : matchcmptype;
-	match_expr : expr;
+	match_top_expr : expr;
 	match_stmt : stmt;
 }
 
-type match_statement = {
+and match_statement = {
 	match_expr : expr;
 	match_list : match_command list;
 }
 
-type var_decl = {
+and var_decl = {
 	vname : string;
 	vtype : vartype * int;
 	vmutable : mutab;
 }
 
-type vdecl_statement = 
+and vdecl_stmt = 
 	  Decl of var_decl
-	| Declinit of var_decl * expr	
-
-type stmt = 	
-	Assign of string * expr
-	| Block of stmt list
-	| Match of match_statement
-	| Vdecl of vdecl_statement
-	| Expr of expr
-	| Pass
+	| Declinit of var_decl * expr
 
 type func_decl = {
 	fname : string;
-	params : var_decl;list;
+	params : var_decl list;
 	body : stmt list;
 }
 
