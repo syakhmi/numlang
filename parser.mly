@@ -19,6 +19,7 @@
 %left	LT LEQ GT GEQ
 %left	PLUS MINUS CONCAT
 %left	TIMES DIVIDE MOD MATMULT
+%right	EXP
 %right	NOT
 
 %start program
@@ -122,7 +123,7 @@ expr :
 	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
 	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }*/
 	/*Put work for arrays and matrices here*/
-	| basic_type LBRACKET lit_int_list RBRACKET
+	| basic_type LBRACKET param_list_call RBRACKET
 						{ Newarr($1, List.rev $3) }
 	| LBRACE list_expr_list_opt RBRACE	{ Litarr(List.rev $2)}
 	| NEWMATRIX expr COMMA  expr RBRACKET
@@ -163,13 +164,9 @@ func_expr:
 	| FSIN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
 	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}*/
 
-lit_int_list:
-	  LITINT					{ [$1] }
-	| lit_int_list LITINT			{ $2 :: $1 }
-
 list_expr_list_opt:
 	  /*Nothing*/			{[]}
-	| list_expr_list expr		{$2 :: $1}
+	| list_expr_list		{$1}
 
 list_expr_list:
 	  expr				{[$1]}
