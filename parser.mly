@@ -81,11 +81,11 @@ stmt_list:
 
 stmt:
 	LBRACE stmt_list RBRACE		{ Block(List.rev $2) }
-	/*| MATCH LPAREN expr RPAREN LBRACE match_list RBRACE
+	| MATCH LPAREN expr RPAREN LBRACE match_list RBRACE
 					{ Match(
 					     { 	match_expr = $3;
 						match_list = List.rev $6 }
-					) }*/
+					) }
 	| vdecl_stmt SEMI			{ Vdecl($1) }
 	| ID ASSIGN expr SEMI	{ Assign($1, $3) }
 	| expr SEMI				{ Expr($1) }
@@ -116,14 +116,14 @@ expr :
 	| MINUS expr				{ Unop(Uminus, $2) }
 	| NOT expr				{ Unop(Not, $2) }
 	| LPAREN expr RPAREN			{ $2 }
-	/*| FLOG LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Flog, $3))}
+	| FLOG LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Flog, $3))}
 	| FLN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fln, $3))}
 	| FCOS LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fsin, $3))}
 	| FSIN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
 	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
-	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }*/
+	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }
 	/*Put work for arrays and matrices here*/
-	| basic_type LBRACKET param_list_call RBRACKET
+	| basic_type LBRACE param_list_call RBRACE
 						{ Newarr($1, List.rev $3) }
 	| NUMLIST list_expr_list_opt RBRACE	{ Litarr(Num, List.rev $2)}
 	| STRLIST list_expr_list_opt RBRACE	{ Litarr(String, List.rev $2)}
@@ -161,11 +161,11 @@ func_expr:
 	| MINUS func_expr			{ Unop(Uminus, $2) }
 	| NOT func_expr				{ Unop(Not, $2) }
 	| LPAREN func_expr RPAREN		{ $2 }
-	/*| FLOG LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Flog, $3))}
+	| FLOG LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Flog, $3))}
 	| FLN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fln, $3))}
 	| FCOS LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fsin, $3))}
 	| FSIN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
-	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}*/
+	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
 
 list_expr_list_opt:
 	  /*Nothing*/			{[]}
@@ -173,7 +173,7 @@ list_expr_list_opt:
 
 list_expr_list:
 	  expr				{[$1]}
-	| list_expr_list expr		{ $2 :: $1}
+	| list_expr_list COMMA expr		{ $3 :: $1}
 
 matrix_rows_list:
 	  matrix_row_contents		{[List.rev $1]}
