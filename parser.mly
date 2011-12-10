@@ -125,7 +125,10 @@ expr :
 	/*Put work for arrays and matrices here*/
 	| basic_type LBRACKET param_list_call RBRACKET
 						{ Newarr($1, List.rev $3) }
-	| LBRACE list_expr_list_opt RBRACE	{ Litarr(List.rev $2)}
+	| NUMLIST list_expr_list_opt RBRACE	{ Litarr(Num, List.rev $2)}
+	| STRLIST list_expr_list_opt RBRACE	{ Litarr(String, List.rev $2)}
+	| FUNLIST list_expr_list_opt RBRACE	{ Litarr(Func, List.rev $2)}
+
 	| NEWMATRIX expr COMMA  expr RBRACKET
 						{ Newmatrix($2, $4) }
 	| MATRIX matrix_rows_list RBRACE	{ Litmatrix(List.rev $2) }

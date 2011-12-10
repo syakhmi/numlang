@@ -23,6 +23,11 @@ rule token = parse
 	| "m["		{ NEWMATRIX }
 	| "m{"		{ MATRIX }
 
+	(* Literla Lists *)
+	| "n{"		{ NUMLIST }
+	| "s{"		{ STRLIST }
+	| "f{"		{ FUNLIST }
+
 	(* Terminator: Semi-colon*)	
 	| ';'		{ SEMI }
 
