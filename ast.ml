@@ -41,12 +41,11 @@ and expr =
 	| FCall of func_call
 	| Noexpr
 
-and stmt = 	
-	  Assign of string * expr list  * expr
-	| Constassign of string * expr list * expr
-	| Block of stmt list
+and stmt =
+	  Block of stmt list
 	| Match of match_statement
-	| Vdecl of vdecl_stmt
+	| Assign of string * expr list  * expr
+	| Constassign of string * expr list * expr
 	| Expr of expr
 	| Pass
 
@@ -65,17 +64,12 @@ and match_statement = {
 and var_decl = {
 	vname : string;
 	vtype : v_type;
-	vmutable : mutab;
 }
 
-and vdecl_stmt = 
-	  Decl of var_decl
-	| Declinit of var_decl * expr
-
-type func_decl = {
-	fname : string;
+type sub_decl = {
+	sname : string;
 	params : var_decl list;
 	body : stmt list;
 }
 
-type program = stmt list * func_decl list (* global variables, functions*)
+type program = stmt list * sub_decl list (* global variables, functions*)

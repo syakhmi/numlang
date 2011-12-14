@@ -25,13 +25,34 @@
 
 %%
 
+/* Rules for a program */
 program:
 	rev_program			{ List.rev (fst $1), List.rev (snd $1)}
 
 rev_program:
 	/*nothing*/			{ [], [] }
 	| program stmt			{ ($2 :: fst $1), snd $1 }
-	| program fdecl			{ fst $1, ($2 :: snd $1) }
+	| program sdecl			{ fst $1, ($2 :: snd $1) }
+
+/* Rules for a subroutine in the program */
+sdecl:
+	SUB ID LPAREN param_list_opt RPAREN LBRACE stmt_list RBRACE
+					{ {	sname = $2;
+						params = List.rev $4;
+						body = List.rev $7; } }
+
+/* Defines parameters to a subroutine and basic types*/
+param_list_opt:
+	/*nothing*/			{ [] }
+	| param_list			{List.rev $1}	
+
+param_list:
+	var_type ID			{ [{	vname = $2;
+						vtype = $1;
+					  }] }
+	| param_list COMMA var_type ID 	{ {	vname = $4;
+						vtype = $3;
+					  } :: $1 }
 
 var_type:
 	basic_type			{ $1 }
@@ -43,45 +64,7 @@ basic_type:
 	| FUNC				{ Func }
 	| MATRIX			{ Matrix(0, 0) }
 
-fdecl:
-	SUB ID LPAREN param_list_opt RPAREN LBRACE stmt_list RBRACE
-					{ {	fname = $2;
-						params = List.rev $4;
-						body = List.rev $7; } }
-
-param_list_opt:
-	/*nothing*/			{ [] }
-	| param_list			{List.rev $1}	
-
-param_list:
-	var_type ID			{ [{	vname = $2;
-						vtype = $1;
-						vmutable =  Mutable;
-					  }] }
-	| param_list COMMA var_type ID 	{ {	vname = $4;
-						vtype = $3;
-						vmutable =  Mutable;
-					  } :: $1 }
-
-param_list_call_opt:
-	/*nothing*/			{ [] }
-	| param_list_call			{List.rev $1}	
-
-param_list_call:
-	expr				{ [] }
-	| param_list_call COMMA expr 	{ $3 :: $1 }
-
-assign_lval:
-	  ID				{ ($1, []) }
-	| assign_lval LBRACKET expr RBRACKET
-					{ (fst $1, $3 :: snd $1) }
-assign_stmt:
-	  assign_lval ASSIGN expr SEMI	{ Assign(fst $1,
-						 List.rev (snd $1), $3) }
-	| CONST assign_lval ASSIGN expr SEMI	
-					{ Constassign(fst $2,
-						 List.rev (snd $2), $4) }
-
+/* Rules for a statement in a program */
 stmt_list:
 	/*nothing*/			{ [] }
 	| stmt_list stmt		{ $2 :: $1 }
@@ -97,7 +80,50 @@ stmt:
 	| expr SEMI			{ Expr($1) }
 	| PASS SEMI			{ Pass }
 
-/*Define Expression Here*/
+/* Rules for match statements */
+match_list:
+	/*nothing*/
+	| match_list match_cmd  { $2 :: $1 }
+
+match_cmd:
+	flow_type match_cond QMARK stmt	{ {	f_type = $1;
+						match_cmp = fst $2;
+						match_expr = snd $2;
+						match_stmt = $4; }}
+
+flow_type:
+	/*nothing*/			{ Cont }
+	| CONT				{ Cont }
+	| DONE				{ Done }
+	| LOOP				{ Loop }
+
+match_cond:
+	match_cmp expr			{ ($1, $2) }
+	| expr				{ (Meq, $1) }
+	| TRUE				{ (Mneq, Litnum("0")) } 
+	| ANY				{ (Any, Litnum("0")) }
+	| DEFAULT			{ (Default, Litnum("0")) }
+
+match_cmp:
+	NEQ				{ Mneq }
+	| LT				{ Mlt }
+	| LEQ				{ Mleq }
+	| GT				{ Mgt }
+	| GEQ				{ Mgeq }
+
+/* Rules for assignment statements */
+assign_lval:
+	  ID				{ ($1, []) }
+	| assign_lval LBRACKET expr RBRACKET
+					{ (fst $1, $3 :: snd $1) }
+assign_stmt:
+	  assign_lval ASSIGN expr SEMI	{ Assign(fst $1,
+						 List.rev (snd $1), $3) }
+	| CONST assign_lval ASSIGN expr SEMI	
+					{ Constassign(fst $2,
+						 List.rev (snd $2), $4) }
+
+/* Rules for an expression*/
 expr :
 	  LITINT				{ Litnum($1) }
 	| LITFLOAT				{ Litnum($1) }
@@ -137,7 +163,8 @@ expr :
 func_param_list:
 	  ID				{ [$1] }
 	| func_param_list COMMA ID	{ $3 :: $1 }
-	
+
+/* Rules for a functional Expression*/
 func_expr:
 	  LITINT				{ FLitnum($1) }
 	| LITFLOAT				{ FLitnum($1) }
@@ -164,6 +191,14 @@ func_expr:
 	| FSIN LPAREN param_list_call RPAREN	{ FFCall(KeyFuncCall(Fcos, $3))}
 	| ID LPAREN param_list_call RPAREN	{ FFCall(FuncCall($1, $3))}
 
+param_list_call_opt:
+	/*nothing*/			{ [] }
+	| param_list_call			{List.rev $1}	
+
+param_list_call:
+	expr				{ [] }
+	| param_list_call COMMA expr 	{ $3 :: $1 }
+
 list_expr_list_opt:
 	  /*Nothing*/			{[]}
 	| list_expr_list		{$1}
@@ -182,32 +217,4 @@ matrix_row_contents:
 	| matrix_row_contents COMMA expr
 					{ $3 :: $1 }
 
-match_list:
-	/*nothing*/
-	| match_list match_cmd  { $2 :: $1 }
 
-match_cmd:
-	flow_type match_cond QMARK stmt	{ {	f_type = $1;
-						match_cmp = fst $2;
-						match_expr = snd $2;
-						match_stmt = $4; }}
-
-flow_type:
-	/*nothing*/			{ Cont }
-	| CONT				{ Cont }
-	| DONE				{ Done }
-	| LOOP				{ Loop }
-
-match_cond:
-	match_cmp expr			{ ($1, $2) }
-	| expr				{ (Meq, $1) }
-	| TRUE				{ (Mneq, Litnum("0")) } /* changed from 0 to Litnum */
-	| ANY				{ (Any, Litnum("0")) }
-	| DEFAULT			{ (Default, Litnum("0")) }
-
-match_cmp:
-	NEQ				{ Mneq }
-	| LT				{ Mlt }
-	| LEQ				{ Mleq }
-	| GT				{ Mgt }
-	| GEQ				{ Mgeq }
