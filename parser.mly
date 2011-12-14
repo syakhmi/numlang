@@ -26,34 +26,27 @@
 %%
 
 program:
+	rev_program			{ List.rev (fst $1), List.rev (snd $1)}
+
+rev_program:
 	/*nothing*/			{ [], [] }
-	| program vdecl_stmt		{ ($2 :: fst $1), snd $1 }
+	| program stmt			{ ($2 :: fst $1), snd $1 }
 	| program fdecl			{ fst $1, ($2 :: snd $1) }
 
-vdecl_stmt:
-	vdecl ASSIGN expr SEMI		{ Declinit($1, $3) }
-	| vdecl SEMI			{ Decl($1) }
-
-vdecl:
-	CONST var_type ID		{ {	vname = $3;
-						vtype = $2;
-						vmutable =  Const;} }
-	| var_type ID			{ {	vname = $2;
-						vtype = $1;
-						vmutable =  Mutable; } }
 var_type:
 	basic_type			{ $1 }
-	| var_type LBRACKET RBRACKET	{ (fst $1, snd $1 + 1) }
+	| var_type LBRACKET RBRACKET	{ Array($1, 0) }
 
 basic_type:
-	NUM 				{ ( Num, 0 ) }
-	| STRING 			{ ( String, 0) }
-	| FUNC				{ ( Func, 0) }
+	NUM 				{ Num }
+	| STRING 			{ String }
+	| FUNC				{ Func }
+	| MATRIX			{ Matrix(0, 0) }
 
 fdecl:
 	SUB ID LPAREN param_list_opt RPAREN LBRACE stmt_list RBRACE
 					{ {	fname = $2;
-						params = $4;
+						params = List.rev $4;
 						body = List.rev $7; } }
 
 param_list_opt:
@@ -61,8 +54,14 @@ param_list_opt:
 	| param_list			{List.rev $1}	
 
 param_list:
-	vdecl				{ [] }
-	| param_list COMMA vdecl 	{ $3 :: $1 }
+	var_type ID			{ [{	vname = $2;
+						vtype = $1;
+						vmutable =  Mutable;
+					  }] }
+	| param_list COMMA var_type ID 	{ {	vname = $4;
+						vtype = $3;
+						vmutable =  Mutable;
+					  } :: $1 }
 
 param_list_call_opt:
 	/*nothing*/			{ [] }
@@ -72,6 +71,16 @@ param_list_call:
 	expr				{ [] }
 	| param_list_call COMMA expr 	{ $3 :: $1 }
 
+assign_lval:
+	  ID				{ ($1, []) }
+	| assign_lval LBRACKET expr RBRACKET
+					{ (fst $1, $3 :: snd $1) }
+assign_stmt:
+	  assign_lval ASSIGN expr SEMI	{ Assign(fst $1,
+						 List.rev (snd $1), $3) }
+	| CONST assign_lval ASSIGN expr SEMI	
+					{ Constassign(fst $2,
+						 List.rev (snd $2), $4) }
 
 stmt_list:
 	/*nothing*/			{ [] }
@@ -84,10 +93,9 @@ stmt:
 					     { 	match_top_expr = $3;
 						match_list = List.rev $6 }
 					) }
-	| vdecl_stmt SEMI			{ Vdecl($1) }
-	| ID ASSIGN expr SEMI	{ Assign($1, $3) }
-	| expr SEMI				{ Expr($1) }
-	| PASS SEMI				{ Pass }
+	| assign_stmt			{ $1 }
+	| expr SEMI			{ Expr($1) }
+	| PASS SEMI			{ Pass }
 
 /*Define Expression Here*/
 expr :
@@ -120,12 +128,7 @@ expr :
 	| FSIN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
 	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
 	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }
-	/*Put work for arrays and matrices here*/
-	| basic_type LBRACE param_list_call RBRACE
-						{ Newarr(fst $1, List.rev $3) }
-	| NUMLIST list_expr_list_opt RBRACE	{ Litarr(Num, List.rev $2)}
-	| STRLIST list_expr_list_opt RBRACE	{ Litarr(String, List.rev $2)}
-	| FUNLIST list_expr_list_opt RBRACE	{ Litarr(Func, List.rev $2)}
+	| LBRACKET list_expr_list_opt RBRACKET	{ Litlist(None, List.rev $2)}
 
 	| NEWMATRIX expr COMMA  expr RBRACKET
 						{ Newmatrix($2, $4) }

@@ -6,8 +6,15 @@ type uop = Uminus | Not
 type fkeyfuncs =  Flog | Fln | Fcos | Fsin
 type cftype = Cont | Done | Loop
 type matchcmptype = Meq | Mneq | Mlt | Mleq | Mgt | Mgeq | Any | Default
-type vartype = Num | String | Func 
 type mutab = Const | Mutable
+
+type v_type =
+	  None
+	| Num 
+	| String
+	| Func
+	| Matrix of int * int
+	| Array of v_type * int
 
 type func_call =
 	  KeyFuncCall of fkeyfuncs * expr list
@@ -24,9 +31,8 @@ and expr =
 	  Litnum of string
 	| Litstring of string
 	| Litfunc of string list * func_expr
-	| Litarr of vartype * expr list
+	| Litlist of v_type * expr list
 	| Litmatrix of expr list list
-	| Newarr of vartype * expr list
 	| Newmatrix of expr * expr
 	| Id of string
 	| Binop of expr * bop * expr
@@ -36,7 +42,8 @@ and expr =
 	| Noexpr
 
 and stmt = 	
-	Assign of string * expr
+	  Assign of string * expr list  * expr
+	| Constassign of string * expr list * expr
 	| Block of stmt list
 	| Match of match_statement
 	| Vdecl of vdecl_stmt
@@ -57,7 +64,7 @@ and match_statement = {
 
 and var_decl = {
 	vname : string;
-	vtype : vartype * int;
+	vtype : v_type;
 	vmutable : mutab;
 }
 
@@ -71,4 +78,4 @@ type func_decl = {
 	body : stmt list;
 }
 
-type program = vdecl_stmt list * func_decl list (* global variables, functions*)
+type program = stmt list * func_decl list (* global variables, functions*)
