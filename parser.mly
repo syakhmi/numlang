@@ -198,9 +198,9 @@ flow_type:
 match_cond:
 	match_cmp expr			{ ($1, $2) }
 	| expr				{ (Meq, $1) }
-	| TRUE				{ (Mneq, "0"}
-	| ANY				{ (Any, "0") }
-	| DEFAULT			{ (Default, "0") }
+	| TRUE				{ (Mneq, Litnum("0")) } /* changed from 0 to Litnum */
+	| ANY				{ (Any, Litnum("0")) }
+	| DEFAULT			{ (Default, Litnum("0")) }
 
 match_cmp:
 	NEQ				{ Mneq }
