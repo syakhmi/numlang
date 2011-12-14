@@ -108,7 +108,7 @@ rule token = parse
 	| ['0'-'9']+ as lxm { LITINT(lxm) }
 
 	(* String Literal *)
-	| '"'((([^'"'])|('\\''"'))* as s)'"'		{ LITSTRING(s) }
+	| '\''((([^'"''\\'])|('\\''t')|('\\''r')|('\\''n')|('\\''\\')|('\\''\''))* as s)'\''	{ LITSTRING(s) }
 
 	| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 
