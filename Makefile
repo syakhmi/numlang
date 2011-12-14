@@ -33,4 +33,5 @@ uninstall: $(SCANL) $(PARSL) $(PARSI)
 	rm $(SCANL)
 	rm $(PARSL)
 	rm $(PARSI)
-	
+	rm *.cmi
+	rm *.cmo	
