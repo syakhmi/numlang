@@ -29,11 +29,13 @@ all: $(SCANNER) $(PARSER)
 	$(OCC) $(OCCOPTS) $(PARSI)
 	$(OCC) $(OCCOPTS) $(SCANL)
 	$(OCC) $(OCCOPTS) $(PARSL)
+	$(OCC) $(OCCOPTS) $(SC).ml
 	$(OCC) -o $(SC) $(PB).cmo $(SB).cmo $(SC).cmo
 
-uninstall: $(SCANL) $(PARSL) $(PARSI)
+clean: $(SCANL) $(PARSL) $(PARSI)
 	rm $(SCANL)
 	rm $(PARSL)
 	rm $(PARSI)
 	rm *.cmi
-	rm *.cmo	
+	rm *.cmo
+	rm ssc

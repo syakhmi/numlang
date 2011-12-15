@@ -9,5 +9,5 @@ type t_expr = t * expr*)
 
 let _ =
 	let lexbuf = Lexing.from_channel stdin in
-	let expr = Parser.program  Scanner.token lexbuf in
-	Printf.printf "done\n"
+	let expr = Scanner.token lexbuf in
+	Printf.printf expr
