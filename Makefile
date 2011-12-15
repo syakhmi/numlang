@@ -50,3 +50,4 @@ clean: $(SCANL) $(PARSL) $(PARSI)
 	rm *.cmi
 	rm *.cmo
 	rm ssc
+	rm parser.output
