@@ -20,9 +20,8 @@ rule token = parse
 	| ">>"		{ RCSUB }
 
 	
-	(* Matrix Braces *)
+	(* Matrix Begin Bracket *)
 	| "m["		{ MATRIX }
-	| "m{"		{ NEWMATRIX }
 
 	(* Literla Lists *)
 	| "n{"		{ NUMLIST }

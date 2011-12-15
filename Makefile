@@ -3,6 +3,7 @@
 SB=scanner
 PB=parser
 AB=ast
+SC=ssc
 
 SCANNER= $(SB).mll
 PARSER= $(PB).mly
@@ -28,6 +29,7 @@ all: $(SCANNER) $(PARSER)
 	$(OCC) $(OCCOPTS) $(PARSI)
 	$(OCC) $(OCCOPTS) $(SCANL)
 	$(OCC) $(OCCOPTS) $(PARSL)
+	$(OCC) -o $(SC) $(PB).cmo $(SB).cmo $(SC).cmo
 
 uninstall: $(SCANL) $(PARSL) $(PARSI)
 	rm $(SCANL)
