@@ -33,7 +33,6 @@ and expr =
 	| Litfunc of string list * func_expr
 	| Litlist of v_type * expr list
 	| Litmatrix of expr list list
-	| Newmatrix of expr * expr
 	| Id of string
 	| Binop of expr * bop * expr
 	| Unop of uop * expr

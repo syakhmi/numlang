@@ -21,8 +21,8 @@ rule token = parse
 
 	
 	(* Matrix Braces *)
-	| "m["		{ NEWMATRIX }
-	| "m{"		{ MATRIX }
+	| "m["		{ MATRIX }
+	| "m{"		{ NEWMATRIX }
 
 	(* Literla Lists *)
 	| "n{"		{ NUMLIST }

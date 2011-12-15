@@ -155,9 +155,6 @@ expr :
 	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
 	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }
 	| LBRACKET list_expr_list_opt RBRACKET	{ Litlist(None, List.rev $2)}
-
-	| NEWMATRIX expr COMMA  expr RBRACKET
-						{ Newmatrix($2, $4) }
 	| MATRIX matrix_rows_list RBRACE	{ Litmatrix(List.rev $2) }
 
 func_param_list:
