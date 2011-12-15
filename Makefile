@@ -21,6 +21,7 @@ OCC= ocamlc
 OCLOPTS=
 OCYOPTS= -v
 OCCOPTS= -c
+OCCDEBUGOPTS= -c -g
 
 all: $(SCANNER) $(PARSER)
 	$(OCL) $(OCLOPTS) $(SCANNER)
@@ -31,6 +32,16 @@ all: $(SCANNER) $(PARSER)
 	$(OCC) $(OCCOPTS) $(PARSL)
 	$(OCC) $(OCCOPTS) $(SC).ml
 	$(OCC) -o $(SC) $(PB).cmo $(SB).cmo $(SC).cmo
+
+debug: $(SCANNER) $(PARSER)
+	$(OCL) $(OCLOPTS) $(SCANNER)
+	$(OCY) $(OCYOPTS) $(PARSER)
+	$(OCC) $(OCCDEBUGOPTS) $(AST)
+	$(OCC) $(OCCDEBUGOPTS) $(PARSI)
+	$(OCC) $(OCCDEBUGOPTS) $(SCANL)
+	$(OCC) $(OCCDEBUGOPTS) $(PARSL)
+	$(OCC) $(OCCDEBUGOPTS) $(SC).ml
+	$(OCC) -g -o $(SC) $(PB).cmo $(SB).cmo $(SC).cmo
 
 clean: $(SCANL) $(PARSL) $(PARSI)
 	rm $(SCANL)

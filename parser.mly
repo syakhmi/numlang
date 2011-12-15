@@ -27,19 +27,16 @@
 
 /* Rules for a program */
 program:
-	rev_program			{ List.rev (fst $1), List.rev (snd $1)}
+	rev_program		{ List.rev $1 }
 
 rev_program:
-	/*nothing*/			{ [], [] }
-	| program stmt			{ ($2 :: fst $1), snd $1 }
-	| program sdecl			{ fst $1, ($2 :: snd $1) }
+	/*nothing*/				{ [] }
+	| rev_program stmt			{ $2 :: $1 }
 
 /* Rules for a subroutine in the program */
 sdecl:
 	SUB ID LPAREN param_list_opt RPAREN LBRACE stmt_list RBRACE
-					{ {	sname = $2;
-						params = List.rev $4;
-						body = List.rev $7; } }
+					{ Subdecl($2, List.rev $4, List.rev $7) }
 
 /* Defines parameters to a subroutine and basic types*/
 param_list_opt:
@@ -79,6 +76,7 @@ stmt:
 	| assign_stmt			{ $1 }
 	| expr SEMI			{ Expr($1) }
 	| PASS SEMI			{ Pass }
+	| sdecl				{ $1 }
 
 /* Rules for match statements */
 match_list:

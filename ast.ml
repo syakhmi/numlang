@@ -47,6 +47,7 @@ and stmt =
 	| Constassign of string * expr list * expr
 	| Expr of expr
 	| Pass
+	| Subdecl of string * var_decl list * stmt list
 
 and match_command = {
 	f_type : cftype;
@@ -65,10 +66,4 @@ and var_decl = {
 	vtype : v_type;
 }
 
-type sub_decl = {
-	sname : string;
-	params : var_decl list;
-	body : stmt list;
-}
-
-type program = stmt list * sub_decl list (* global variables, functions*)
+type program = stmt list (* global variables, functions*)
