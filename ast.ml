@@ -34,6 +34,8 @@ and expr =
 	| Litlist of v_type * expr list
 	| Litmatrix of expr list list
 	| Id of string
+	| Ref of expr * expr
+	| Slice of expr * expr * expr
 	| Binop of expr * bop * expr
 	| Unop of uop * expr
 	| Call of string * expr list
