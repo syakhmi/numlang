@@ -1,16 +1,23 @@
-package com.numlang
+package com.numlang;
 
-import java.Math.*;
+import java.math.*;
 import com.numlang.NumValue;
 
+
+enum BinOp {	ADD, SUB, MULT, DIV, EXP, MOD,
+		EQ, NEQ, LT, LEQ, GT, GEQ};
+enum UnOp  {	UMINUS, NOT};
+
+
+
 public class FuncValue{
-	private int m_params;
-	private Func m_function;
+	public int m_params;
+	public Func m_function;
 
 	public FuncValue()
 	{
 		m_params = 0;
-		m_function = new Func(new NumValue("0"));
+		m_function = new Func(new NumValue(new BigRational("0")));
 	}
 	public FuncValue(int params, Func function)
 	{
@@ -23,81 +30,82 @@ public class FuncValue{
 		return m_function.evaluate(paramlist);
 	}
 
-	public FuncValue bin_front(Func_value other, BinOp op)
+	public FuncValue bin_front(FuncValue other, BinOp op)
 	{
 		int tparams = other.m_params + this.m_params;
 		Func lfunc = other.m_function.copy();
-		Func rfunc = this.m_function.shiftparams(other.m_params);
-		return new FuncValue(tparams, new Func(lfunc, op, rfunc);
+		Func rfunc = this.m_function.shift(other.m_params);
+		return new FuncValue(tparams, new Func(lfunc, op, rfunc));
 	}
-	public FuncValue bin_back(BinOp op, Func_value other)
+	public FuncValue bin_back(BinOp op, FuncValue other)
 	{
 		int tparams = this.m_params + other.m_params;
 		Func lfunc = this.m_function.copy();
-		Func rfunc = other.m_function.shiftparams(this.m_params);
-		return new FuncValue(tparams, new Func(lfunc, op, rfunc);
+		Func rfunc = other.m_function.shift(this.m_params);
+		return new FuncValue(tparams, new Func(lfunc, op, rfunc));
 	}
 
 	public FuncValue unary(UnOp op)
 	{
-		return new FuncValue(op, this.m_function.copy());
+		return new FuncValue(	this.m_params, 
+					new Func(op, this.m_function.copy()));
 	}
 
 	public FuncValue nest(FuncValue[] inputs)
 	{
-		FuncValue[] local_inputs = new FuncValue[inputs.length];
-		int shift = local_inputs[0].m_params;
-		for(int i = 1; i < local_inputs.length; i++)
+		Func[] funcs  = new Func[inputs.length];
+		for(int i = 0; i < inputs.length; i++)
 		{
-			local_inputs[i].shift(shift);
-			shift +=local_inputs[i].m_params;
+			funcs[i] = inputs[i].m_function;
 		}
-		return new FuncValue(shift, m_function.nest(local_inputs));
+
+		int shift = inputs[0].m_params;
+		for(int i = 1; i < inputs.length; i++)
+		{
+			funcs[i] = funcs[i].shift(shift);
+			shift += inputs[i].m_params;
+		}
+		return new FuncValue(shift, m_function.nest(funcs));
 		
 	}
 
 }
 
-public enum BinOp {	ADD, SUB, MULT, DIV, EXP, MOD,
-			MX, EQ, NEQ, LT, LEQ, GT, GEQ};
-public enum UnOp  {	UMINUS, NOT};
-
-
 
 class Func{
-	private enum FuncType {	BINOP, UNOP, CONST, VAR}
+	public  enum FuncType {	BINOP, UNOP, CONST, VAR};
 
-	private int 		m_index;
-	private NumValue 	m_value;
-	private Func 		m_left;
-	private Func	 	m_right;
-	private BinOp		m_bop;
-	private UnOp		m_uop;
-	private FuncType 	m_type;
+	public	int 		m_index;
+	public  NumValue 	m_value;
+	public  Func 		m_left;
+	public  Func	 	m_right;
+	public  BinOp		m_bop;
+	public  UnOp		m_uop;
+	public  FuncType 	m_type;
 
 
 	public Func(Func left, BinOp op, Func right)
 	{
-		m_type = BINOP;
+		m_type = FuncType.BINOP;
 		m_left = left;
 		m_right = right;
 		m_bop = op;
 	}
-	public Func(UnOp op, Func right)
+	public Func(UnOp op, Func value)
 	{
-		m_type = UNOP;
+		m_type = FuncType.UNOP;
 		m_right = value;
 		m_uop = op;
 	}
 	public Func(int index)
 	{
-		m_type = VAR;
+		m_type = FuncType.VAR;
 		m_index = index;
 	}
 	public Func(NumValue value)
 	{
-		m_type =  CONST;
-		m_value = value
+		m_type =  FuncType.CONST;
+		m_value = value;
 	}
 	public Func copy()
 	{
@@ -110,7 +118,7 @@ class Func{
 			case UNOP:
 				return new Func(m_uop, m_right);
 			case BINOP:
-				return new Func(m_left, m_uop, m_right);
+				return new Func(m_left, m_bop, m_right);
 			default:
 				return null;
 		}
@@ -142,6 +150,8 @@ class Func{
 				return m_right.evaluate(params).neg();
 			case NOT:
 				return m_right.evaluate(params).not();
+			default:
+				return null;
 		}
 	}
 
@@ -173,6 +183,8 @@ class Func{
 				return m_left.evaluate(params).gt(m_right.evaluate(params));
 			case GEQ:
 				return m_left.evaluate(params).geq(m_right.evaluate(params));
+			default:
+				return null;
 		}
 	}
 
@@ -185,11 +197,11 @@ class Func{
 			case CONST:
 				return this.copy();
 			case UNOP:
-				return new Func(m_op, m_right.shift(shift));
+				return new Func(m_uop, m_right.shift(shift));
 			case BINOP:
 				return new Func(m_left.shift(shift),
-						m_op, m_right.shift(shift));
-			default: 	return null
+						m_bop, m_right.shift(shift));
+			default: 	return null;
 		}
 	}
 
@@ -202,22 +214,92 @@ class Func{
 			case CONST:
 				return this.copy();
 			case UNOP:
-				return new Func(m_op, m_right.nest(params));
+				return new Func(m_uop, m_right.nest(params));
 			case BINOP:
 				return new Func(m_left.nest(params),
-						m_op, m_right.nest(params));
-			default: 	return null
+						m_bop, m_right.nest(params));
+			default: 	return null;
 		}
 	}
 }
 
+class SpecialFunc extends Func
+{
+	public enum SpecialType {SIN, COS, LN, LOG, CEIL, FLOOR};
+
+	public Func		 m_func;
+	public SpecialType	 m_utype;
+
+	public SpecialFunc(Func input)
+	{
+		super(new NumValue(new BigRational(0)));
+		m_func = input;
+	}
+
+	public SpecialFunc copy()
+	{
+		return new SpecialFunc(m_func.copy());
+	}
+
+	public NumValue evaluate(NumValue[] params)
+	{
+		switch(m_utype)
+		{
+			case SIN:
+				return KeyFuncs.sin(m_func.evaluate(params));
+			case COS:
+				return KeyFuncs.cos(m_func.evaluate(params));
+			case LN:
+				return KeyFuncs.ln(m_func.evaluate(params));
+			case LOG:
+				return KeyFuncs.log(m_func.evaluate(params));
+			case CEIL:
+				return KeyFuncs.ceil(m_func.evaluate(params));
+			case FLOOR:
+				return KeyFuncs.floor(m_func.evaluate(params));
+			default:
+				return null;
+		}
+	}
+
+	
+}
+
+
 
 class KeyFuncs{
-	public static NumValue func_sin(NumValue value){}
-	public static NumValue func_cos(NumValue value){}
-	public static NumValue func_ln(NumValue value){}
-	public static NumValue func_log(NumValue value, NumValue exp){}
-	public static NumValue func_ceil(NumValue value){}
-	public static NumValue func_floor(NumValue value){}
+	public static NumValue sin(NumValue value)
+	{
+		double temp = Math.sin(value.getValue().doubleValue());
+		return new NumValue(new BigRational(temp));
+	}
+	public static NumValue cos(NumValue value)
+	{
+		double temp = Math.cos(value.getValue().doubleValue());
+		return new NumValue(new BigRational(temp));
+	}
+
+	public static NumValue ln(NumValue value)
+	{
+		double temp = Math.log(value.getValue().doubleValue());
+		return new NumValue(new BigRational(temp));
+	}
+	public static NumValue log(NumValue value)
+	{
+		double temp = Math.log10(value.getValue().doubleValue());
+		return new NumValue(new BigRational(temp));
+	}
+
+	public static NumValue ceil(NumValue value)
+	{
+		double temp = Math.ceil(value.getValue().doubleValue());
+		return new NumValue(new BigRational(temp));
+	}
+
+	public static NumValue floor(NumValue value)
+	{
+		double temp = Math.floor(value.getValue().doubleValue());
+		return new NumValue(new BigRational(temp));
+	}
 
 }
