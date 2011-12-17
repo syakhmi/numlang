@@ -31,7 +31,7 @@ and expr =
 	  Litnum of string
 	| Litstring of string
 	| Litfunc of string list * func_expr
-	| Litlist of v_type * expr list
+	| Litlist of expr list
 	| Litmatrix of expr list list
 	| Id of string
 	| Ref of expr * expr
@@ -40,7 +40,6 @@ and expr =
 	| Unop of uop * expr
 	| Call of string * expr list
 	| FCall of func_call
-	| Noexpr
 
 and stmt =
 	  Block of stmt list
