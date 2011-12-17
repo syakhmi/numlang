@@ -40,7 +40,6 @@ and expr =
 	| Unop of uop * expr
 	| Call of string * expr list
 	| FCall of func_call
-	| Noexpr
 
 and stmt =
 	  Block of stmt list
