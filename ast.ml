@@ -14,7 +14,7 @@ type v_type =
 	| String
 	| Func
 	| Matrix of int * int
-	| Array of v_type * int
+	| List of v_type * int
 
 type func_call =
 	  KeyFuncCall of fkeyfuncs * expr list
@@ -46,7 +46,7 @@ and stmt =
 	  Block of stmt list
 	| Match of match_statement
 	| Assign of string * expr list  * expr
-	| Constassign of string * expr list * expr
+	| Constassign of string * expr
 	| Externassign of string * expr list * expr
 	| Expr of expr
 	| Pass

@@ -53,7 +53,7 @@ param_list:
 
 var_type:
 	basic_type			{ $1 }
-	| var_type LBRACKET RBRACKET	{ Array($1, 0) }
+	| var_type LBRACKET RBRACKET	{ List($1, 0) }
 
 basic_type:
 	NUM 				{ Num }
@@ -117,9 +117,8 @@ assign_lval:
 assign_stmt:
 	  assign_lval ASSIGN expr SEMI	{ Assign(fst $1,
 						 List.rev (snd $1), $3) }
-	| CONST assign_lval ASSIGN expr SEMI	
-					{ Constassign(fst $2,
-						 List.rev (snd $2), $4) }
+	| CONST ID ASSIGN expr SEMI	
+					{ Constassign($2, $4) }
 	| EXTERN assign_lval ASSIGN expr SEMI	{ Externassign(fst $2,
 							 List.rev (snd $2), $4) }
 
