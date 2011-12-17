@@ -230,15 +230,16 @@ class SpecialFunc extends Func
 	public Func		 m_func;
 	public SpecialType	 m_utype;
 
-	public SpecialFunc(Func input)
+	public SpecialFunc(SpecialType type, Func input)
 	{
 		super(new NumValue(new BigRational(0)));
 		m_func = input;
+		m_utype = type;
 	}
 
 	public SpecialFunc copy()
 	{
-		return new SpecialFunc(m_func.copy());
+		return new SpecialFunc(m_utype, m_func.copy());
 	}
 
 	public NumValue evaluate(NumValue[] params)
@@ -260,6 +261,14 @@ class SpecialFunc extends Func
 			default:
 				return null;
 		}
+	}
+	public SpecialFunc shift(int shift)
+	{
+		return new SpecialFunc(m_utype, m_func.shift(shift));
+	}
+	public SpecialFunc nest(Func[] params)
+	{
+		return new SpecialFunc(m_utype, m_func.nest(params));
 	}
 
 	
