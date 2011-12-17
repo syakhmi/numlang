@@ -117,9 +117,8 @@ assign_lval:
 assign_stmt:
 	  assign_lval ASSIGN expr SEMI	{ Assign(fst $1,
 						 List.rev (snd $1), $3) }
-	| CONST assign_lval ASSIGN expr SEMI	
-					{ Constassign(fst $2,
-						 List.rev (snd $2), $4) }
+	| CONST ID ASSIGN expr SEMI	
+					{ Constassign($2, $4) }
 	| EXTERN assign_lval ASSIGN expr SEMI	{ Externassign(fst $2,
 							 List.rev (snd $2), $4) }
 
