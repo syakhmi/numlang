@@ -120,6 +120,8 @@ assign_stmt:
 	| CONST assign_lval ASSIGN expr SEMI	
 					{ Constassign(fst $2,
 						 List.rev (snd $2), $4) }
+	| EXTERN assign_lval ASSIGN expr SEMI	{ Externassign(fst $2,
+							 List.rev (snd $2), $4) }
 
 /* Rules for an expression*/
 expr :

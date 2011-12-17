@@ -47,6 +47,7 @@ and stmt =
 	| Match of match_statement
 	| Assign of string * expr list  * expr
 	| Constassign of string * expr list * expr
+	| Externassign of string * expr list * expr
 	| Expr of expr
 	| Pass
 	| Subdecl of string * var_decl list * stmt list
