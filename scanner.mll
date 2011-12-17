@@ -89,6 +89,7 @@ rule token = parse
 	| "func"	{ FUNC }
 	| "sub"		{ SUB }
 	| "const"	{ CONST }
+	| "extern"	{ EXTERN }
 
 	(* Inculde statement*)
 	| "include"	{ INCLUDE }
