@@ -1,7 +1,7 @@
 package com.numlang;
 
 import java.math.*;
-import com.numlang.NumValue;
+import com.numlang.*;
 
 
 enum BinOp {	ADD, SUB, MULT, DIV, EXP, MOD,
@@ -247,17 +247,17 @@ class SpecialFunc extends Func
 		switch(m_utype)
 		{
 			case SIN:
-				return KeyFuncs.sin(m_func.evaluate(params));
+				return NumLang.Func.sin(m_func.evaluate(params));
 			case COS:
-				return KeyFuncs.cos(m_func.evaluate(params));
+				return NumLang.Func.cos(m_func.evaluate(params));
 			case LN:
-				return KeyFuncs.ln(m_func.evaluate(params));
+				return NumLang.Func.ln(m_func.evaluate(params));
 			case LOG:
-				return KeyFuncs.log(m_func.evaluate(params));
+				return NumLang.Func.log(m_func.evaluate(params));
 			case CEIL:
-				return KeyFuncs.ceil(m_func.evaluate(params));
+				return NumLang.Func.ceil(m_func.evaluate(params));
 			case FLOOR:
-				return KeyFuncs.floor(m_func.evaluate(params));
+				return NumLang.Func.floor(m_func.evaluate(params));
 			default:
 				return null;
 		}
@@ -275,40 +275,3 @@ class SpecialFunc extends Func
 }
 
 
-
-class KeyFuncs{
-	public static NumValue sin(NumValue value)
-	{
-		double temp = Math.sin(value.getValue().doubleValue());
-		return new NumValue(new BigRational(temp));
-	}
-	public static NumValue cos(NumValue value)
-	{
-		double temp = Math.cos(value.getValue().doubleValue());
-		return new NumValue(new BigRational(temp));
-	}
-
-	public static NumValue ln(NumValue value)
-	{
-		double temp = Math.log(value.getValue().doubleValue());
-		return new NumValue(new BigRational(temp));
-	}
-	public static NumValue log(NumValue value)
-	{
-		double temp = Math.log10(value.getValue().doubleValue());
-		return new NumValue(new BigRational(temp));
-	}
-
-	public static NumValue ceil(NumValue value)
-	{
-		double temp = Math.ceil(value.getValue().doubleValue());
-		return new NumValue(new BigRational(temp));
-	}
-
-	public static NumValue floor(NumValue value)
-	{
-		double temp = Math.floor(value.getValue().doubleValue());
-		return new NumValue(new BigRational(temp));
-	}
-
-}

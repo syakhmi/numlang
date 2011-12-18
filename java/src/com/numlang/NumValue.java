@@ -1,19 +1,21 @@
 package com.numlang;
 
-import com.numlang.BigRational;
-import com.numlang.FuncValue;
+import com.numlang.*;
 
 public class NumValue {
 	private BigRational value;
 
-	public NumValue(BigRational value) {
-		this.value = value;
+	public NumValue(BigRational p_value) {
+		this.value = p_value;
 	}
 
 	public BigRational getValue() {
 		return value;
 	}
 
+	public String toString(){
+		return value.toString();
+	}
 
 	/*Num Operations*/
 	public NumValue add(NumValue other){
