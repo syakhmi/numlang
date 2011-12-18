@@ -1,4 +1,4 @@
-type fbop = FAdd | FSub | FMult | FDiv | FExp | FMod | FMatMult
+type fbop = FAdd | FSub | FMult | FDiv | FExp | FMod
 	  | FEq | FNeq | FLt | FLeq | FGt | FGeq
 type bop = 	Add | Sub | Mult | Div | Exp | Mod | MatMult
 		  | Eq | Neq | Lt | Leq | Gt | Geq | Concat
