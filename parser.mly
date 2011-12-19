@@ -171,7 +171,6 @@ func_expr:
 	| func_expr DIVIDE func_expr		{ FBinop($1, FDiv, $3) }
 	| func_expr EXP func_expr		{ FBinop($1, FExp, $3) }
 	| func_expr MOD func_expr		{ FBinop($1, FMod, $3) }
-	| func_expr MATMULT func_expr		{ FBinop($1, FMatMult, $3) }
 	| func_expr EQ func_expr		{ FBinop($1, FEq, $3) }
 	| func_expr NEQ func_expr		{ FBinop($1, FNeq, $3) }
 	| func_expr LT func_expr		{ FBinop($1, FLt, $3) }
