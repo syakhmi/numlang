@@ -84,11 +84,26 @@ and check_fexpr l f_expr env =
     match f_expr with
 		FLitnum(s) -> Sast.Expr(Sast.Litnum(s), Ast.Num)
     	| FId(s) -> check_fid s l env
-    	| FBinop(e1, op, e2) -> check_binop e1 op e2 env
+    	| FBinop(e1, op, e2) -> check_binop e1 (convert_ops op) e2 env
     	| FUnop(op, e) -> check_unop op e env
     	| FFCall(fcall) -> check_fcall fcall env
     	| _ -> raise (Error("Weird error check_fexpr!"))
 
+and convert_ops op = 
+	match op with
+		Ast.FAdd -> Ast.Add
+		| Ast.FSub -> Ast.Sub
+		| Ast.FMult -> Ast.Mult
+		| Ast.FDiv -> Ast.Div
+		| Ast.FExp -> Ast.Exp
+		| Ast.FMod -> Ast.Mod
+	  	| Ast.FEq -> Ast.Eq
+	  	| Ast.FNeq -> Ast.Neq
+	  	| Ast.FLt -> Ast.Lt
+	  	| Ast.FLeq -> Ast.Leq
+	  	| Ast.FGt -> Ast.Gt
+	  	| Ast.FGeq -> Ast.Geq
+	  	| _ -> raise (Error("Invalid fop conversion!"))
 
 and check_matrix l env =
 	try
@@ -158,12 +173,12 @@ and check_binop e1 op e2 env =
 		match e2 with
         	Sast.Expr(_, t2) ->
     			(* Case for +,-,*,%,/,^ operators *)
-    			if op = Ast.Add || op = Ast.Minus || op = Ast.Mult || op = Ast.Mod || op = Ast.Exp then
+    			if op = Ast.Add || op = Ast.Sub|| op = Ast.Mult || op = Ast.Mod || op = Ast.Exp then
         			if (t1 = Ast.Matrix(-1,-1) && (t2 = Ast.Num || t2 = Ast.Matrix(-1,-1)))|| (t2 = Ast.Matrix(-1,-1) && t1 = Ast.Num) then
             			Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix(-1,-1))
             		else if (t1 = Ast.Num && t2 = Ast.Num) then
                 		Sast.Expr(Sast.Binop(e1, op, e2), Ast.Num)
-            		else if (t1 eq Ast.Func && (t2 = Ast.Func || t2 = Ast.Num)) || (t2 = Ast.Func && t1 = Ast.Num) then
+                	else if (t1 = Ast.Func && (t2 = Ast.Func || t2 = Ast.Num)) || (t2 = Ast.Func && t1 = Ast.Num) then
                 		Sast.Expr(Sast.Binop(e1, op, e2), Ast.Func)
             		else raise (Error("Illegal addition/subtraction/multiplication/modulus/division/exponential"))
 
@@ -178,7 +193,7 @@ and check_binop e1 op e2 env =
 					if t1 = Ast.Num && t2 = Ast.Num then
 						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Num)
 					else if (t1 = Ast.Num && t2 = Ast.Func) || (t1 = Ast.Func && t2 = Ast.Func) then
-						Sast.expr(Sast.Binop(e1, op, e2), Ast.Func)
+						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Func)
 					else raise (Error("Illegal Relational Operator use"))
 
 				(* Case for =, != *)
@@ -192,12 +207,16 @@ and check_binop e1 op e2 env =
 					else raise (Error("Illegal Equality Operator use"))
 
 				(* Case for . *)
-				else if op Ast.Concat then
+				else if op = Ast.Concat then
 					if t1 = Ast.String && t2 = Ast.String then
 						Sast.Expr(Sast.Binop(e1, op, e2), Ast.String)
-					else if t1 = Ast.List && t2 = Ast.List then
-						Sast.Expr(Sast.Binop(e1, op, e2), Ast.List)
-					else raise (Error("Illegal String/List Concatenation"))
+					else (match t1 with 
+						Ast.List(vartype,len) -> (match t2 with 
+							Ast.List(vartype,len2) -> Sast.Expr(Sast.Binop(e1, op, e2), Ast.List(vartype,len+len2))
+							| _ -> raise (Error("Illegal List Concatenation!")))
+						| _ -> raise (Error("Illegal Concatenation!")))					
+						
+				else raise (Error("Illegal Binary Operation"))
 
 		| _ ->     raise (Error("Illegal Binary Operator!"))
 	| _ ->     raise (Error("Illegal Binary Operator!"))
