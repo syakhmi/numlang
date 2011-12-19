@@ -47,6 +47,24 @@ class NumLangException
 		printstack(2);
 		System.exit(2);
 	}
+	public void MatrixSizeMismatch(int r1, int c1, int r2, int c2)
+	{
+		System.err.println("NumLang Error: Matrix Size Mismatch");
+		System.err.println("\tAttempted to perform elementwise operation on:");
+		System.err.println("\tMatrix[" + r1 + ", " + c1 + "] and Matrix[" + r2 + ", " + c2 + "]");
+		printstack(2);
+		System.exit(3);
+	}
+
+	
+	public void MatrixMultiplicationSizeMismatch(int r1, int c1, int r2, int c2)
+	{
+		System.err.println("NumLang Error: Matrix Multiplication Size Mismatch");
+		System.err.println("\tAttempted to perform matrix multiplication operation on:");
+		System.err.println("\tMatrix[" + r1 + ", " + c1 + "] and Matrix[" + r2 + ", " + c2 + "]");
+		printstack(2);
+		System.exit(3);
+	}
 
 	private void printstack(int tab)
 	{

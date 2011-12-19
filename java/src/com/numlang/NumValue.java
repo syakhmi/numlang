@@ -30,6 +30,8 @@ public class NumValue {
 	}
 
 	public NumValue divide(NumValue other){
+		if(other.getValue().isZero())
+			NumLang.Exception.DivideByZero(this);
 		return new NumValue(value.divide(other.value));
 	}
 
@@ -141,5 +143,55 @@ public class NumValue {
 	public FuncValue geq(FuncValue other){
 		FuncValue temp = new FuncValue(0, new Func(this));
 		return other.bin_front(temp, BinOp.GEQ);
+	}
+
+
+	/*Matrix Operations*/
+	public MatrixValue add(MatrixValue other){
+		return other.add(this);
+	}
+
+	public MatrixValue subtract(MatrixValue other){
+		return other.neg().add(this);
+	}
+
+	public MatrixValue multiply(MatrixValue other){
+		return other.multiply(this);
+	}
+
+	public MatrixValue divide(MatrixValue other){
+		return other.divide_front(this);
+	}
+
+	public MatrixValue exp(MatrixValue other){
+		return other.exp_front(this);
+	}
+
+	public MatrixValue mod(MatrixValue other){
+		return other.mod_front(this);
+	}
+
+	public MatrixValue eq(MatrixValue other){
+		return other.eq(this);
+	}
+
+	public MatrixValue neq(MatrixValue other){
+		return other.neq(this);
+	}
+
+	public MatrixValue lt(MatrixValue other){
+		return other.geq(this);
+	}
+
+	public MatrixValue leq(MatrixValue other){
+		return other.gt(this);
+	}
+
+	public MatrixValue gt(MatrixValue other){
+		return other.leq(this);
+	}
+
+	public MatrixValue geq(MatrixValue other){
+		return other.lt(this);
 	}
 }
