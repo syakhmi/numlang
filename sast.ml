@@ -9,7 +9,7 @@ and func_call =
 and sexpr =
      Litnum of string
    | Litstring of string
-   | Litfunc of string list * expr_wrapper
+   | Litfunc of string list * sexpr
    | Litlist of expr_wrapper list
    | Litmatrix of expr_wrapper list list
    | Id of string
@@ -19,6 +19,7 @@ and sexpr =
    | Unop of Ast.uop * expr_wrapper
    | Call of string * expr_wrapper list
    | FCall of func_call
+   | Funarg of int
 
 and sstmt =
      Block of sstmt list

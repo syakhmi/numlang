@@ -9,7 +9,7 @@ type matchcmptype = Meq | Mneq | Mlt | Mleq | Mgt | Mgeq | Any | Default
 type mutab = Const | Mutable
 
 type v_type =
-	  None
+	  Notype
 	| Num 
 	| String
 	| Func
