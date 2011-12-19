@@ -66,10 +66,9 @@ type translation_environment = {
 let rec index_of i a = function
     [] -> -1
 	| hd::tl -> if hd = a then i else index_of (i+1) a tl
-;;
 
-let check_fid s l env =
-    let i = index_of 0 s l in
+and check_fid s l env =
+    (let i = index_of 0 s l in
     if i > -1 then
         Sast.Expr(Sast.Funarg(i), Ast.Num)
     else
@@ -79,11 +78,11 @@ let check_fid s l env =
 			raise (Error("undeclared identifier " ^ s))
 		in
 		let typ = vdecl.var_type in
-		Sast.Expr(Sast.Id(vdecl), typ)
+		Sast.Expr(Sast.Id(s), typ))
 
 and check_fexpr l f_expr env =
     match f_expr with
-		FLitnum(s) -> Sast.expr(Ast.Litnum(s), Ast.Num)
+		FLitnum(s) -> Sast.Expr(Sast.Litnum(s), Ast.Num)
     	| FId(s) -> check_fid s l env
     	| FBinop(e1, op, e2) -> check_binop e1 op e2 env
     	| FUnop(op, e) -> check_unop op e env
@@ -94,17 +93,17 @@ and check_fexpr l f_expr env =
 and check_matrix l env =
 	try
         let returnmatrix = List.map (fun a -> List.map (fun a2 -> expr a2 env) a) l in
-			let rowlength = List.length List.hd returnmatrix in
+			let rowlength = List.length (List.hd returnmatrix) in
         	let b = List.fold_left (fun valid row -> if List.length row <> rowlength then 0*valid else 1*valid) 1 returnmatrix
 			and b2 = List.fold_left (fun valid row -> valid * List.fold_left (fun valid e -> 
 				match e with Sast.Expr(_, vtype) -> if vtype <> Ast.Num then 0*valid else 1*valid
 			) 1 row) 1 returnmatrix
 			and rows = List.fold_left (fun rowcount row -> rowcount + 1) 0 returnmatrix
-			and cols = List.fold_left (fun colcount col -> colcount + 1) 0 List.hd returnmatrix
+			and cols = List.fold_left (fun colcount col -> colcount + 1) 0 (List.hd returnmatrix)
 		in if b=1 & b2=1 then
 			Sast.Expr(Sast.Litmatrix(returnmatrix), Ast.Matrix(rows, cols))
 		else raise (Error("Invalid matrix"))
-	with Failure -> raise (Error("Invalid matrix"))
+	with Failure(hd) -> raise (Error("Invalid matrix"))
 
 and check_list l env =
 	try
@@ -113,41 +112,43 @@ and check_list l env =
 			let b = List.fold_left (fun valid e -> match e with
 				Sast.Expr(_, vtype) -> if vartype <> vtype then 0*valid else 1*valid) 1 returnlist
 			and len = List.fold_left (fun i e -> i + 1) 0 returnlist
-		in if b eq 1 then Sast.Expr(Sast.Litlist(returnlist), Ast.List(vartype,len))
+		in if b = 1 then Sast.Expr(Sast.Litlist(returnlist), Ast.List(vartype,len))
 		else raise (Error("list of multiple types"))
-	with Failure -> raise (Error("Empty list"))
+	with Failure(hd) -> raise (Error("Empty list"))
    
 and check_id name env =
+	let vdecl = try
+		find_variable env.scope name
+	with Not_found ->
+		raise (Error("undeclared identifier " ^ name))
+	in
+	let typ = vdecl.var_type in
+	Sast.Expr(Sast.Id(name), typ)
 
-let vdecl = try
-
-    find_variable env.scope name
-
-with Not_found ->
-
-    raise (Error("undeclared identifier " ^ name))
-
-in
-        let typ = vdecl.var_type in
-
-Sast.Expr(Sast.Id(vdecl), typ)
-
-and check_unop op e env=
+and check_unop op e env =
     let e = expr env e in
     match e with
     	Sast.Expr(_, t) ->
     		if op = Ast.Uminus then
-				match t with
-					Ast.Num -> Sast.Expr(Sast.Unop(op, e), Ast.Num)
-					| Ast.Func -> Sast.Expr(Sast.Unop(op, e), Ast.Func)
-					| Ast.Matrix(-1,-1) -> Sast.Expr(Sast.Unop(op, e), Ast.Matrix(-1,-1))
-					| _ -> raise (Error("Illegal Unary Operator!"))
-    		else if op = Ast.Not then
-        		match t with
-					Ast.Num -> Sast.Expr(Sast.Unop(op, e), Ast.Num)
-					| Ast.Func -> Sast.Expr(Sast.Unop(op, e), Ast.Func)
-					| _ -> raise (Error("Illegal Unary Operator!"))
-	| _ -> raise (Error("Illegal Unary Operator!"))
+				if t = Ast.Num then
+					Sast.Expr(Sast.Unop(op, e), Ast.Num)
+				else
+					if t = Ast.Func then
+						Sast.Expr(Sast.Unop(op, e), Ast.Func)
+					else
+						if t = Ast.Matrix(-1,-1) then
+							Sast.Expr(Sast.Unop(op, e), Ast.Matrix(-1,-1))
+						else raise (Error("Illegal Unary Operator!"))
+    		else
+				if op = Ast.Not then
+        			if t = Ast.Num then
+						Sast.Expr(Sast.Unop(op, e), Ast.Num)
+					else
+						if t = Ast.Func then
+							Sast.Expr(Sast.Unop(op, e), Ast.Func)
+						else raise (Error("Illegal Unary Operator!"))
+				else raise (Error("Illegal Unary Operator!"))
+		| _ -> raise (Error("Illegal Unary Operator!"))
 
 and check_binop e1 op e2 env =
     let e1 = expr env e1
