@@ -23,10 +23,10 @@ rule token = parse
 	(* Matrix Begin Bracket *)
 	| "m["		{ MATRIX }
 
-	(* Literla Lists *)
+	(*(* Literla Lists *)
 	| "n{"		{ NUMLIST }
 	| "s{"		{ STRLIST }
-	| "f{"		{ FUNLIST }
+	| "f{"		{ FUNLIST }*)
 
 	(* Terminator: Semi-colon*)	
 	| ';'		{ SEMI }
@@ -87,6 +87,7 @@ rule token = parse
 	| "num"		{ NUM }
 	| "string"	{ STRING }
 	| "func"	{ FUNC }
+	| "list"	{ LIST }
 	| "sub"		{ SUB }
 	| "const"	{ CONST }
 	| "extern"	{ EXTERN }
