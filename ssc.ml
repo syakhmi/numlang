@@ -13,7 +13,7 @@ type variable_decl = {
 
 type symbol_table = {
    parent : symbol_table option;
-   variables : variable_decl list
+   mutable variables : variable_decl list
 }
 
 let rec sublist b e l =
@@ -24,18 +24,26 @@ let rec sublist b e l =
     if b>0 then tail else h :: tail
 ;;
 
-let convert_vecl decl =
+let convert_vdecl decl =
     {name=decl.vname;const=false;var_type=decl.vtype;return_type=None;args=None}
 
 let new_symbol_table parent l =
-    {parent = parent; variables = [
+    {parent = Some(parent); variables = [
         {name="log";const=true;var_type=Ast.Func;return_type=None;args=None};
         {name="ln";const=true;var_type=Ast.Func;return_type=None;args=None};
         {name="cos";const=true;var_type=Ast.Func;return_type=None;args=None};
         {name="log";const=true;var_type=Ast.Func;return_type=None;args=None}
 
 ]@l}
-       
+
+let root_symbol_table =
+    {parent = None; variables = [
+        {name="log";const=true;var_type=Ast.Func;return_type=None;args=None};
+        {name="ln";const=true;var_type=Ast.Func;return_type=None;args=None};
+        {name="cos";const=true;var_type=Ast.Func;return_type=None;args=None};
+        {name="log";const=true;var_type=Ast.Func;return_type=None;args=None}
+
+]}
 
 let rec find_variable (scope : symbol_table) name =
    try
@@ -52,12 +60,9 @@ let rec find_local_variable (scope : symbol_table) name =
        raise Not_found
 
 let rec find_nonlocal_variable (scope : symbol_table) name =
-
-match scope.parent with
-
-Some(parent) -> find_variable parent name
-
-| _ -> raise Not_found
+	match scope.parent with
+		Some(parent) -> find_variable parent name
+		| _ -> raise Not_found
 
 type translation_environment = {
    scope : symbol_table;
@@ -82,12 +87,11 @@ and check_fid s l env =
 
 and check_fexpr l f_expr env =
     match f_expr with
-		FLitnum(s) -> Sast.Expr(Sast.Litnum(s), Ast.Num)
-    	| FId(s) -> check_fid s l env
-    	| FBinop(e1, op, e2) -> check_binop e1 (convert_ops op) e2 env
-    	| FUnop(op, e) -> check_unop op e env
-    	| FFCall(fcall) -> check_fcall fcall env
-    	| _ -> raise (Error("Weird error check_fexpr!"))
+		Ast.FLitnum(s) -> Sast.Expr(Sast.Litnum(s), Ast.Num)
+    	| Ast.FId(s) -> check_fid s l env
+    	| Ast.FBinop(e1, op, e2) -> check_binop (convert_fexpr e1) (convert_ops op) (convert_fexpr e2) env
+    	| Ast.FUnop(op, e) -> check_unop op (convert_fexpr e) env
+    	| Ast.FFCall(fcall) -> check_fcall fcall env
 
 and convert_ops op = 
 	match op with
@@ -103,11 +107,10 @@ and convert_ops op =
 	  	| Ast.FLeq -> Ast.Leq
 	  	| Ast.FGt -> Ast.Gt
 	  	| Ast.FGeq -> Ast.Geq
-	  	| _ -> raise (Error("Invalid fop conversion!"))
 
 and check_matrix l env =
 	try
-        let returnmatrix = List.map (fun a -> List.map (fun a2 -> expr a2 env) a) l in
+        let returnmatrix = List.map (fun a -> List.map (fun a2 -> check_expr env a2) a) l in
 			let rowlength = List.length (List.hd returnmatrix) in
         	let b = List.fold_left (fun valid row -> if List.length row <> rowlength then 0*valid else 1*valid) 1 returnmatrix
 			and b2 = List.fold_left (fun valid row -> valid * List.fold_left (fun valid e -> 
@@ -122,7 +125,7 @@ and check_matrix l env =
 
 and check_list l env =
 	try
-		let returnlist = List.map (fun a -> expr env a) l in
+		let returnlist = List.map (fun a -> check_expr env a) l in
 		match List.hd returnlist with Sast.Expr(_, vartype) ->
 			let b = List.fold_left (fun valid e -> match e with
 				Sast.Expr(_, vtype) -> if vartype <> vtype then 0*valid else 1*valid) 1 returnlist
@@ -141,7 +144,7 @@ and check_id name env =
 	Sast.Expr(Sast.Id(name), typ)
 
 and check_unop op e env =
-    let e = expr env e in
+    let e = check_expr env e in
     match e with
     	Sast.Expr(_, t) ->
     		if op = Ast.Uminus then
@@ -163,11 +166,10 @@ and check_unop op e env =
 							Sast.Expr(Sast.Unop(op, e), Ast.Func)
 						else raise (Error("Illegal Unary Operator!"))
 				else raise (Error("Illegal Unary Operator!"))
-		| _ -> raise (Error("Illegal Unary Operator!"))
 
 and check_binop e1 op e2 env =
-    let e1 = expr env e1
-    and e2 = expr env e2 in
+    let e1 = check_expr env e1
+    and e2 = check_expr env e2 in
     match e1 with
     Sast.Expr(_, t1) ->
 		match e2 with
@@ -180,7 +182,12 @@ and check_binop e1 op e2 env =
                 		Sast.Expr(Sast.Binop(e1, op, e2), Ast.Num)
                 	else if (t1 = Ast.Func && (t2 = Ast.Func || t2 = Ast.Num)) || (t2 = Ast.Func && t1 = Ast.Num) then
                 		Sast.Expr(Sast.Binop(e1, op, e2), Ast.Func)
-            		else raise (Error("Illegal addition/subtraction/multiplication/modulus/division/exponential"))
+            		else match op with
+						Ast.Add -> raise (Error("Illegal Addition!"))
+						| Ast.Sub -> raise (Error("Illegal Subtraction!"))
+						| Ast.Mult -> raise (Error("Illegal Multiplication!"))
+						| Ast.Mod -> raise (Error("Illegal Modulus!"))
+						| Ast.Exp -> raise (Error("Illegal Exponent!"))
 
 				(* Case for # *)
 				else if op = Ast.MatMult then
@@ -217,9 +224,6 @@ and check_binop e1 op e2 env =
 						| _ -> raise (Error("Illegal Concatenation!")))					
 						
 				else raise (Error("Illegal Binary Operation"))
-
-		| _ ->     raise (Error("Illegal Binary Operator!"))
-	| _ ->     raise (Error("Illegal Binary Operator!"))
    
 and check_scall name args env =
 	let vdecl = try
@@ -227,51 +231,62 @@ and check_scall name args env =
 	with Not_found -> raise (Error("Undeclared sub identifier " ^ name))
 	in
 		let typ = vdecl.var_type in
-		if typ = Ast.Sub then
+		if typ = Ast.Subr then
+			match vdecl.args with
+			Some(vargs) ->
+			let args = List.map (fun x ->
+				check_expr env x
+			) args in
 			let sargs = List.map2 (fun e d ->
 				match e with
 				Sast.Expr(exp, typ) ->
 					if typ = d.var_type then e else
 						raise (Error("Incorrect type of sub arg!"))
-				| _ -> raise (Error("Weird error check_scall"))
-			) args vdecl.args in
+			) args vargs in
 			Sast.Expr(Sast.Call(name, sargs), typ)
+			| _ -> raise (Error("Subr " ^ name ^ " has no args!"))
 		else
-    		raise (Error(name " is not a Sub!"))
+    		raise (Error(name ^ " is not a Sub!"))
 
 and check_fcall fcall env =
 	match fcall with
-		KeyFuncCall(f, el) ->
-			let el = List.map (fun x -> expr x env) el in
+		Ast.KeyFuncCall(f, e) ->
+			let e = check_expr env e in
+			let e = (match e with
+				Sast.Expr(_, typ) -> if typ = Ast.Num then e else raise (Error("NonNum Func Arg!"))) in
 			(match f with
-				Flog -> Sast.Expr(Sast.Fcall("log", el), Ast.Num)
-				| Fln -> Sast.Expr(Sast.Fcall("ln", el), Ast.Num)
-				| Fcos -> Sast.Expr(Sast.Fcall("cos", el), Ast.Num)
-				| Fsin -> Sast.Expr(Sast.Fcall("log", el), Ast.Num)
-				| _ -> raise (Error("Weird error check_fcall!"))) (* Does this work? *)
-		| FuncCall(s, el) ->
+				Ast.Flog -> Sast.Expr(Sast.FCall("log", [e]), Ast.Num)
+				| Ast.Fln -> Sast.Expr(Sast.FCall("ln", [e]), Ast.Num)
+				| Ast.Fcos -> Sast.Expr(Sast.FCall("cos", [e]), Ast.Num)
+				| Ast.Fsin -> Sast.Expr(Sast.FCall("log", [e]), Ast.Num))
+		| Ast.FuncCall(s, el) ->
 			let vdecl = try
 				find_variable env.scope s
 			with Not_found ->
-				raise (Error("undeclared function identifier " ^ name))
+				raise (Error("undeclared function identifier " ^ s))
 			in
 			let el = List.map (fun x ->
-				let e = expr x env in
+				let e = check_expr env x in
 				(match e with
-					Sast.Expr(e, t) ->
-						if t=Ast.Num then e else raise (Error("Non num argument supplied to fcall " ^ s ^ "!"))
-					| _ -> raise (Error("Weird error check_fcall!")))
+					Sast.Expr(_, t) ->
+						if t=Ast.Num then e else raise (Error("Non num argument supplied to fcall " ^ s ^ "!")))
 			) el in
             if vdecl.var_type=Ast.Func then
-				Sast.Expr(Sast.Fcall(s, el), Ast.Num)
+				Sast.Expr(Sast.FCall(s, el), Ast.Num)
 			else
-				raise (Error(vdecl.name "not a Func!"))
-		|_ -> raise (Error("Weird Error check_fcall!"))
+				raise (Error(vdecl.name ^ " not a Func!"))
 
-and expr env = function
-	Ast.Litnum(s) -> Sast.Expr(Ast.Litnum(s), Ast.Num)
-	| Ast.Litstring(s) -> Sast.Expr(Ast.Litstring(s), Ast.String)
-	| Ast.Litfunc(l, f_expr) -> check_fexpr l f_expr env
+and convert_fexpr = function
+	Ast.FLitnum(s) -> Ast.Litnum(s)
+	| Ast.FId(s) -> Ast.Id(s)
+	| Ast.FBinop(e1, fb, e2) -> Ast.Binop((convert_fexpr e1), (convert_ops fb), (convert_fexpr e2))
+	| Ast.FUnop(op, fe) -> Ast.Unop(op, (convert_fexpr fe))
+	| Ast.FFCall(fcall) -> Ast.FCall(fcall)
+
+and check_expr env = function
+	Ast.Litnum(s) -> Sast.Expr(Sast.Litnum(s), Ast.Num)
+	| Ast.Litstring(s) -> Sast.Expr(Sast.Litstring(s), Ast.String)
+	| Ast.Litfunc(l, f_expr) -> Sast.Expr(Sast.Litfunc(l, check_fexpr l f_expr env), Ast.Func)
 	| Ast.Litlist(l) -> check_list l env
 	| Ast.Litmatrix(l) -> check_matrix l env
 	| Ast.Id(name) -> check_id name env
@@ -279,74 +294,90 @@ and expr env = function
 	| Ast.Unop(op, e) -> check_unop op e env
 	| Ast.Call(name, args) -> check_scall name args env
 	| Ast.FCall(fcall) -> check_fcall fcall env
+	| _ -> raise (Error("Weird Error!"))
 
-let check_match ms env =
-    let top = expr ms.match_top_expr env in
+and check_match ms env =
+    let top = check_expr env ms.match_top_expr in
     match top with
     Sast.Expr(top_e, top_t) ->
     let ml = List.map (fun x->
-        let me = expr x.match_expr env in
+        let me = check_expr env x.match_expr in
         match me with
             Sast.Expr(e, t) ->
                 if (t=top_t||x.match_cmp=Ast.Any||x.match_cmp=Ast.Default) && (t=Ast.String || t=Ast.Num) then
-                    {f_type=x.f_type;match_cmp=x.match_cmp;match_expr=me;match_stmt=(stmt x.match_stmt env)}
+                    {sf_type=x.f_type;smatch_cmp=x.match_cmp;smatch_expr=me;smatch_stmt=(check_stmt env x.match_stmt)}
                 else
                 raise (Error("Match stmt type error!"))
-            | _ -> raise (Error("Weird error!"))
     ) ms.match_list in
-    {match_top_expr=top_e;match_list=ml}
-    | _-> raise (Error("Weird error!"))
+    {smatch_top_expr=top;smatch_list=ml}
 
-let check_assign name l e env =
-	let vdecl = try
-		find_local_variable env.scope name
-	with Not_found ->
-		let se = expr e in
-		match l with
-			x::x2 -> raise (Error("List " ^ name ^ " undefined!"))
-			| [] ->
-				let vdecl = {name=name;const=false} in
-				env.scope.variables <- vdecl::env.scope.variables;
-				Sast.Vdecl(name, se)
-	in
-    	if vdecl.const = true then
+and check_assign name l e env =
+	try
+		let vdecl = find_local_variable env.scope name in
+		if vdecl.const = true then
 			raise (Error("Variable " ^ name ^ " is const!"))
 		else
-			let se = expr e in
-			let sl = List.map expr l in
-			Sast.Assign(name, sl, se)
-
-let check_cassign name e env =
-	let vdecl = try
-		find_local_variable env.scope name
+			let se = check_expr env e in
+			match se with
+				Sast.Expr(_, typ) ->
+					if typ=vdecl.var_type then
+						let sl = List.map (fun x -> check_expr env x) l in
+						Sast.Assign(name, sl, se)
+					else raise (Error("Cannot reassign " ^ name ^ " a new type!"))
 	with Not_found ->
-		let se = expr e in
-		let vdecl = {name=name;const=false} in
-		env.scope.variables <- vdecl::env.scope.variables;
-		Sast.Cdecl(name, se)
-	in
-	if vdecl.const = true then
-        raise (Error("Local variable " ^ name ^ " already const!"))
-    else
-		let se = expr e in
-		let vdecl = {vdecl with const=false} in
-		env.scope.variables <- vdecl::env.scope.variables;
-		Sast.Cdecl(name, se)
+		let se = check_expr env e in
+		match se with
+			Sast.Expr(_, typ) ->
+				(match l with
+					x::x2 -> raise (Error("List " ^ name ^ " undefined!"))
+					| [] ->
+						let vdecl = {name=name;const=false;var_type=typ;return_type=None;args=None} in
+						env.scope.variables <- vdecl::env.scope.variables;
+						Sast.Vdecl(name, se))
+    	
+
+and check_cassign name e env =
+	try
+		let vdecl = find_local_variable env.scope name in
+		if vdecl.const = true then
+	        raise (Error("Local variable " ^ name ^ " already const!"))
+	    else
+			let se = check_expr env e in
+			match se with
+			Sast.Expr(_, typ) ->
+				if typ=vdecl.var_type then
+					let vdecl = {vdecl with const=true} in
+					env.scope.variables <- vdecl::env.scope.variables;
+					Sast.Cdecl(name, se)
+				else raise (Error("Cannot const reassign " ^ name ^ " with a new type!"))
+	with Not_found ->
+		let se = check_expr env e in
+		match se with
+			Sast.Expr(_, typ) ->
+				let vdecl = {name=name;const=true;var_type=typ;return_type=None;args=None} in
+				env.scope.variables <- vdecl::env.scope.variables;
+				Sast.Cdecl(name, se)
+		
+	
 
 and check_eassign name l e env =
-	ignore (try
-		find_nonlocal_variable env.scope name
+	try
+		let vdecl = find_nonlocal_variable env.scope name in
+		let se = check_expr env e in
+		match se with
+			Sast.Expr(_, typ) ->
+				if typ=vdecl.var_type then
+	    			let sl = List.map (fun x -> check_expr env x) l in
+			    	Sast.Assign(name, sl, se)
+				else raise (Error("Cannot extern assign " ^ name ^ " with a new type!"))
 	with Not_found ->
-    	raise (Error("External variable " ^ name ^ " has not been declared!")));
-	let se = expr env e in
-    let sl = List.map (fun x -> expr env x) l in
-    Sast.Assign(name, sl, se)
+    	raise (Error("External variable " ^ name ^ " has not been declared!"))
        
 and check_block l env =
-    let new_scope = new_symbol_table Some(env.scope) [] in
+    let new_scope = new_symbol_table env.scope [] in
     let new_env = { env with scope = new_scope } in
-    let sl = List.map (fun s -> stmt new_env s) l in
-    Sast.Block(new_scope, sl)
+    let sl = List.map (fun s -> check_stmt new_env s) l in
+    Sast.Block(sl)
 
 and check_sub s vdcll stml env =
     match env.scope.parent with
@@ -356,28 +387,35 @@ and check_sub s vdcll stml env =
 				ignore (find_local_variable env.scope s);raise (Error("Sub " ^ s ^ " already declared!"))
 			with Not_found ->
 				let converted_vdecl = (List.map convert_vdecl vdcll) in
-				let new_scope = new_symbol_table Some(env.scope) converted_vdecl in
+				let new_scope = new_symbol_table env.scope converted_vdecl in
 				let new_env = { env with scope = new_scope } in
-				let sl = List.map (fun s -> stmt new_env s) sublist 0 ((List.length stml)-1) stml in
-				let last = stmt new_env List.nth stml ((List.length stml)-1) in
+				let sl = List.map (fun s -> check_stmt new_env s) (sublist 0 ((List.length stml)-1) stml) in
+				let last = check_stmt new_env (List.nth stml ((List.length stml)-1)) in
 				match last with
-					Sast.Expr(e, t) ->
-						let vdecl = {name=s;const=true;var_type=Ast.Sub;return_type=t;args=converted_vdecl} in
+					Sast.Exprstmt(Sast.Expr(e, t)) ->
+						let vdecl = {name=s;const=true;var_type=Ast.Subr;return_type=Some(t);args=Some(converted_vdecl)} in
 						env.scope.variables <- vdecl::env.scope.variables;
-						Sast.Subdecl(s, new_scope, vdcll, sl@[last])
+						Sast.Subdecl(s, vdcll, sl@[last])
 					| _ -> raise (Error("No return value in  " ^ s ^ "!"))
 
-and stmt env = function
+and check_stmt env = function
     Ast.Block(l) -> check_block l env
-    | Ast.Match(ms) -> check_match ms
+    | Ast.Match(ms) -> Sast.Match(check_match ms env)
     | Ast.Assign(name, l, e) -> check_assign name l e env
     | Ast.Constassign(name, e) -> check_cassign name e env
     | Ast.Externassign(name, l, e) -> check_eassign name l e env
-    | Ast.Expr(e) -> expr env e
-    | Ast.Pass -> Ast.Pass
-    | Subdecl(s, vdcll, stmtl) -> check_sub s vdcll stml env
+    | Ast.Expr(e) -> Sast.Exprstmt(check_expr env e)
+    | Ast.Pass -> Sast.Pass
+    | Ast.Subdecl(s, vdcll, stmtl) -> check_sub s vdcll stmtl env
+
+let check_program stmtl =
+	let env = {scope = root_symbol_table} in
+	List.map (fun stmt ->
+		check_stmt env stmt
+	) stmtl
 
 let _ =
-   let lexbuf = Lexing.from_channel stdin in
-   let expr = Parser.program Scanner.token lexbuf in
-   Printf.printf "done\n"
+	let lexbuf = Lexing.from_channel stdin in
+	let prog = Parser.program Scanner.token lexbuf in
+	let checked_program = check_program prog in
+	Printf.printf "done\n"

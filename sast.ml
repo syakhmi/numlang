@@ -3,13 +3,10 @@ open Ast
 type expr_wrapper =
     Expr of sexpr * Ast.v_type
 
-and func_call =
-   | FuncCall of string * sexpr list
-
 and sexpr =
      Litnum of string
    | Litstring of string
-   | Litfunc of string list * sexpr
+   | Litfunc of string list * expr_wrapper
    | Litlist of expr_wrapper list
    | Litmatrix of expr_wrapper list list
    | Id of string
@@ -18,7 +15,7 @@ and sexpr =
    | Binop of expr_wrapper * bop * expr_wrapper
    | Unop of Ast.uop * expr_wrapper
    | Call of string * expr_wrapper list
-   | FCall of func_call
+   | FCall of string * expr_wrapper list
    | Funarg of int
 
 and sstmt =
@@ -33,15 +30,15 @@ and sstmt =
    | Subdecl of string * Ast.var_decl list * sstmt list
 
 and smatch_command = {
-   f_type : cftype;
-   match_cmp : matchcmptype;
-   match_expr : expr_wrapper;
-   match_stmt : sstmt;
+   sf_type : cftype;
+   smatch_cmp : matchcmptype;
+   smatch_expr : expr_wrapper;
+   smatch_stmt : sstmt;
 }
 
 and smatch_statement = {
-   match_top_expr : expr_wrapper;
-   match_list : smatch_command list;
+   smatch_top_expr : expr_wrapper;
+   smatch_list : smatch_command list;
 }
 
 type sprogram = sstmt list

@@ -13,11 +13,12 @@ type v_type =
 	| Num 
 	| String
 	| Func
+	| Subr
 	| Matrix of int * int
 	| List of v_type * int
 
 type func_call =
-	  KeyFuncCall of fkeyfuncs * expr list
+	  KeyFuncCall of fkeyfuncs * expr
 	| FuncCall of string * expr list
 
 and func_expr =

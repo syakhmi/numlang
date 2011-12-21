@@ -147,10 +147,10 @@ expr :
 	| MINUS expr				{ Unop(Uminus, $2) }
 	| NOT expr				{ Unop(Not, $2) }
 	| LPAREN expr RPAREN			{ $2 }
-	| FLOG LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Flog, $3))}
-	| FLN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fln, $3))}
-	| FCOS LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fsin, $3))}
-	| FSIN LPAREN param_list_call RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
+	| FLOG LPAREN expr RPAREN	{ FCall(KeyFuncCall(Flog, $3))}
+	| FLN LPAREN expr RPAREN	{ FCall(KeyFuncCall(Fln, $3))}
+	| FCOS LPAREN expr RPAREN	{ FCall(KeyFuncCall(Fsin, $3))}
+	| FSIN LPAREN expr RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
 	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
 	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }
 	| LBRACKET list_expr_list_opt RBRACKET	{ Litlist(List.rev $2)}
@@ -180,10 +180,10 @@ func_expr:
 	| MINUS func_expr			{ FUnop(Uminus, $2) }
 	| NOT func_expr				{ FUnop(Not, $2) }
 	| LPAREN func_expr RPAREN		{ $2 }
-	| FLOG LPAREN param_list_call RPAREN	{ FFCall(KeyFuncCall(Flog, $3))}
-	| FLN LPAREN param_list_call RPAREN	{ FFCall(KeyFuncCall(Fln, $3))}
-	| FCOS LPAREN param_list_call RPAREN	{ FFCall(KeyFuncCall(Fsin, $3))}
-	| FSIN LPAREN param_list_call RPAREN	{ FFCall(KeyFuncCall(Fcos, $3))}
+	| FLOG LPAREN expr RPAREN	{ FFCall(KeyFuncCall(Flog, $3))}
+	| FLN LPAREN expr RPAREN	{ FFCall(KeyFuncCall(Fln, $3))}
+	| FCOS LPAREN expr RPAREN	{ FFCall(KeyFuncCall(Fsin, $3))}
+	| FSIN LPAREN expr RPAREN	{ FFCall(KeyFuncCall(Fcos, $3))}
 	| ID LPAREN param_list_call RPAREN	{ FFCall(FuncCall($1, $3))}
 
 param_list_call_opt:
