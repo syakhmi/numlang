@@ -34,6 +34,11 @@ public class StringValue {
 	{
 		return new StringValue(this.getValue() + other.getValue());
 	}
+
+	public ListValue<StringValue> concat(ListValue<StringValue> other)
+	{
+		return other.concatFront(this);
+	}
 	
 	public StringValue get(NumValue index)
 	{

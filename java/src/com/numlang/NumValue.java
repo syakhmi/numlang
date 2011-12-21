@@ -194,4 +194,10 @@ public class NumValue {
 	public MatrixValue geq(MatrixValue other){
 		return other.lt(this);
 	}
+
+	/*List operations*/
+	public ListValue<NumValue> concat(ListValue<NumValue> other)
+	{
+		return other.concatFront(this);
+	}
 }

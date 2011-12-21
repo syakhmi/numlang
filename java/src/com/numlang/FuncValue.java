@@ -78,6 +78,11 @@ public class FuncValue{
 		return output;
 	}
 
+	public ListValue<FuncValue> concat(ListValue<FuncValue> other)
+	{
+		return other.concatFront(this);
+	}
+
 }
 
 

@@ -13,6 +13,14 @@ public class ListValue<T>
 	{
 		m_list = new LinkedList<T>();
 	}
+	public ListValue(T[] elements)
+	{
+		m_list = new LinkedList<T>();
+		for(int i = 0; i < elements.length; i++)
+		{
+			m_list.add(elements[i]);
+		}
+	}
 
 /*
 	public ListValue(ListValue other)
@@ -23,7 +31,7 @@ public class ListValue<T>
 
 	public void push(T element)
 	{
-		m_list.add(0, element);
+		m_list.addFirst(element);
 	}
 
 	public void add(T element)
@@ -59,7 +67,7 @@ public class ListValue<T>
 		return x;
 	}
 
-	public ListValue slice(NumValue a, NumValue b)
+	public ListValue<T> slice(NumValue a, NumValue b)
 	{
 		int i = c_index(a);
 		int j = c_index(b);
@@ -73,7 +81,7 @@ public class ListValue<T>
 		return list;
 	}
 
-	public ListValue concat(ListValue other)
+	public ListValue<T> concat(ListValue<T> other)
 	{
 		ListValue<T> list = new ListValue<T>();
 		Iterator<T> iter = this.m_list.iterator();
@@ -85,6 +93,39 @@ public class ListValue<T>
 
 		return list;
 	}
+	public ListValue<T> concat(T other)
+	{
+		ListValue<T> list = new ListValue<T>();
+		Iterator<T> iter = this.m_list.iterator();
+		while(iter.hasNext())
+			list.add(iter.next());
+		list.add(other);
+		return list;
+	}
+
+	public ListValue<T> concatFront(T other)
+	{
+		ListValue<T> list = new ListValue<T>();
+		list.add(other);
+		Iterator<T> iter = this.m_list.iterator();
+		while(iter.hasNext())
+			list.add(iter.next());
+		return list;
+	}
+
+	public T[] convToArray()
+	{
+		if(m_list.size() <= 0)
+			return null;
+		T[] x = new T[m_list.size()];
+		Iterator<T> iter = m_list.iterator();
+		int i = 0;
+		while(iter.hasNext())
+		{
+			x[i] = iter.next();
+		}
+		return x;
+	}
 
 	private int c_index(NumValue index)
 	{
@@ -94,3 +135,4 @@ public class ListValue<T>
 		return i;
 	}
 }
+

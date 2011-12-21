@@ -15,6 +15,27 @@ public class MatrixValue
 		m_elements = elements;
 	}
 
+	public MatrixValue(ListValue<ListValue<NumValue>> elements)
+	{
+		ListValue<NumValue> temp = elements.convToArray();
+		if(temp == null)
+			NumLang.Exception.ListToMatrixException(0, 0);
+		m_rows = temp.length;
+
+		if(temp[0].size() <= 0)
+			NumLang.Exception.ListToMatrixException(m_rows, 0);
+
+		m_cols = temp[0].size();
+		m_elements = new NumValue[m_rows][m_cols];
+		m_elements[0] = temp[0].convToArray();
+
+		for(int i = 1; i < m_rows; i++)
+		{
+			if (temp[i].size() != m_cols)
+				NumLang.Exception.ListToMatrixJaggedException(m_cols, temp[i].size());
+			m_elements[i] = temp[i].convToArray();
+		}
+	}
 
 	/*Matrix operations*/
 
@@ -483,4 +504,10 @@ public class MatrixValue
 				m_rows, m_cols, other.m_rows, other.m_cols);
 		}
 	}
+
+	/*List operations*/
+        public ListValue<MatrixValue> concat(ListValue<MatrixValue> other)
+        {   
+                return other.concatFront(this);
+        }  
 }
