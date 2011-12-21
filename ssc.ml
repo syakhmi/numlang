@@ -87,11 +87,12 @@ and check_fid s l env =
 
 and check_fexpr l f_expr env =
     match f_expr with
-		Ast.FLitnum(s) -> Sast.Expr(Sast.Litnum(s), Ast.Num)
-    	| Ast.FId(s) -> check_fid s l env
-    	| Ast.FBinop(e1, op, e2) -> check_binop (convert_fexpr e1) (convert_ops op) (convert_fexpr e2) env
-    	| Ast.FUnop(op, e) -> check_unop op (convert_fexpr e) env
-    	| Ast.FFCall(fcall) -> check_fcall fcall env
+		Ast.Litnum(s) -> Sast.Expr(Sast.Litnum(s), Ast.Num)
+    	| Ast.Id(s) -> check_fid s l env
+    	| Ast.Binop(e1, op, e2) -> check_fbinop l e1 op e2 env
+    	| Ast.Unop(op, e) -> check_funop l op e env
+    	| Ast.FCall(ffcall) -> check_ffcall l ffcall env
+		| _ -> raise (Error("Invalid function literal!"))
 
 and convert_ops op = 
 	match op with
@@ -166,6 +167,30 @@ and check_unop op e env =
 							Sast.Expr(Sast.Unop(op, e), Ast.Func)
 						else raise (Error("Illegal Unary Operator!"))
 				else raise (Error("Illegal Unary Operator!"))
+				
+and check_funop l op e env =
+   let e = check_fexpr l e env in
+   match e with
+   	Sast.Expr(_, t) ->
+   		if op = Ast.Uminus then
+			if t = Ast.Num then
+				Sast.Expr(Sast.Unop(op, e), Ast.Num)
+			else
+				if t = Ast.Func then
+					Sast.Expr(Sast.Unop(op, e), Ast.Func)
+				else
+					if t = Ast.Matrix(-1,-1) then
+						Sast.Expr(Sast.Unop(op, e), Ast.Matrix(-1,-1))
+					else raise (Error("Illegal Unary Operator!"))
+   		else
+			if op = Ast.Not then
+       			if t = Ast.Num then
+					Sast.Expr(Sast.Unop(op, e), Ast.Num)
+				else
+					if t = Ast.Func then
+						Sast.Expr(Sast.Unop(op, e), Ast.Func)
+					else raise (Error("Illegal Unary Operator!"))
+			else raise (Error("Illegal Unary Operator!"))
 
 and check_binop e1 op e2 env =
     let e1 = check_expr env e1
@@ -188,6 +213,7 @@ and check_binop e1 op e2 env =
 						| Ast.Mult -> raise (Error("Illegal Multiplication!"))
 						| Ast.Mod -> raise (Error("Illegal Modulus!"))
 						| Ast.Exp -> raise (Error("Illegal Exponent!"))
+						| _ -> raise (Error("Weird Error! (check_binop)"))
 
 				(* Case for # *)
 				else if op = Ast.MatMult then
@@ -224,7 +250,66 @@ and check_binop e1 op e2 env =
 						| _ -> raise (Error("Illegal Concatenation!")))					
 						
 				else raise (Error("Illegal Binary Operation"))
-   
+
+and check_fbinop l e1 op e2 env =
+    let e1 = check_fexpr l e1 env
+    and e2 = check_fexpr l e2 env in
+    match e1 with
+    Sast.Expr(_, t1) ->
+		match e2 with
+        	Sast.Expr(_, t2) ->
+    			(* Case for +,-,*,%,/,^ operators *)
+    			if op = Ast.Add || op = Ast.Sub|| op = Ast.Mult || op = Ast.Mod || op = Ast.Exp then
+        			if (t1 = Ast.Matrix(-1,-1) && (t2 = Ast.Num || t2 = Ast.Matrix(-1,-1)))|| (t2 = Ast.Matrix(-1,-1) && t1 = Ast.Num) then
+            			Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix(-1,-1))
+            		else if (t1 = Ast.Num && t2 = Ast.Num) then
+                		Sast.Expr(Sast.Binop(e1, op, e2), Ast.Num)
+                	else if (t1 = Ast.Func && (t2 = Ast.Func || t2 = Ast.Num)) || (t2 = Ast.Func && t1 = Ast.Num) then
+                		Sast.Expr(Sast.Binop(e1, op, e2), Ast.Func)
+            		else match op with
+						Ast.Add -> raise (Error("Illegal Addition!"))
+						| Ast.Sub -> raise (Error("Illegal Subtraction!"))
+						| Ast.Mult -> raise (Error("Illegal Multiplication!"))
+						| Ast.Mod -> raise (Error("Illegal Modulus!"))
+						| Ast.Exp -> raise (Error("Illegal Exponent!"))
+						| _ -> raise (Error("Weird Error! (check_binop)"))
+
+				(* Case for # *)
+				else if op = Ast.MatMult then
+					if t1 = Ast.Matrix(-1,-1) && t2 = Ast.Matrix(-1,-1) then
+						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix(-1,-1))
+					else raise (Error("Illegal Matrix Multiplication"))
+
+				(* Case for <, <=, >, >= *)
+				else if op = Ast.Lt || op = Ast.Leq || op = Ast.Gt || op = Ast.Geq then
+					if t1 = Ast.Num && t2 = Ast.Num then
+						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Num)
+					else if (t1 = Ast.Num && t2 = Ast.Func) || (t1 = Ast.Func && t2 = Ast.Func) then
+						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Func)
+					else raise (Error("Illegal Relational Operator use"))
+
+				(* Case for =, != *)
+				else if op = Ast.Eq || op = Ast.Neq then
+					if t1 = Ast.Num && t2 = Ast.Num then
+						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Num)
+					else if (t1 = Ast.Num && t2 = Ast.Func) || (t1 = Ast.Func && t2 = Ast.Func)then
+						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Num)
+					else if (t1 = Ast.String && t2 = Ast.String) then
+						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Num)
+					else raise (Error("Illegal Equality Operator use"))
+
+				(* Case for . *)
+				else if op = Ast.Concat then
+					if t1 = Ast.String && t2 = Ast.String then
+						Sast.Expr(Sast.Binop(e1, op, e2), Ast.String)
+					else (match t1 with 
+						Ast.List(vartype,len) -> (match t2 with 
+							Ast.List(vartype,len2) -> Sast.Expr(Sast.Binop(e1, op, e2), Ast.List(vartype,len+len2))
+							| _ -> raise (Error("Illegal List Concatenation!")))
+						| _ -> raise (Error("Illegal Concatenation!")))					
+
+				else raise (Error("Illegal Binary Operation"))
+
 and check_scall name args env =
 	let vdecl = try
     	find_variable env.scope name
@@ -275,18 +360,50 @@ and check_fcall fcall env =
 				Sast.Expr(Sast.FCall(s, el), Ast.Num)
 			else
 				raise (Error(vdecl.name ^ " not a Func!"))
+				
+and check_ffcall l fcall env =
+	match fcall with
+		Ast.KeyFuncCall(f, e) ->
+			let e = check_fexpr l e env in
+			let e = (match e with
+				Sast.Expr(_, typ) -> if typ = Ast.Num then e else raise (Error("NonNum Func Arg!"))) in
+			(match f with
+				Ast.Flog -> Sast.Expr(Sast.FCall("log", [e]), Ast.Num)
+				| Ast.Fln -> Sast.Expr(Sast.FCall("ln", [e]), Ast.Num)
+				| Ast.Fcos -> Sast.Expr(Sast.FCall("cos", [e]), Ast.Num)
+				| Ast.Fsin -> Sast.Expr(Sast.FCall("log", [e]), Ast.Num))
+		| Ast.FuncCall(s, el) ->
+			let vdecl = try
+				find_variable env.scope s
+			with Not_found ->
+				raise (Error("undeclared function identifier " ^ s))
+			in
+			let el = List.map (fun x ->
+				let e = check_fexpr l x env in
+				(match e with
+					Sast.Expr(_, t) ->
+						if t=Ast.Num then e else raise (Error("Non num argument supplied to fcall " ^ s ^ "!")))
+			) el in
+            if vdecl.var_type=Ast.Func then
+				Sast.Expr(Sast.FCall(s, el), Ast.Num)
+			else
+				raise (Error(vdecl.name ^ " not a Func!"))
 
 and convert_fexpr = function
 	Ast.FLitnum(s) -> Ast.Litnum(s)
 	| Ast.FId(s) -> Ast.Id(s)
 	| Ast.FBinop(e1, fb, e2) -> Ast.Binop((convert_fexpr e1), (convert_ops fb), (convert_fexpr e2))
 	| Ast.FUnop(op, fe) -> Ast.Unop(op, (convert_fexpr fe))
-	| Ast.FFCall(fcall) -> Ast.FCall(fcall)
+	| Ast.FFCall(ffcall) -> Ast.FCall(convert_ffunc_call ffcall)
+
+and convert_ffunc_call = function
+	Ast.FKeyFuncCall(key, e) -> Ast.KeyFuncCall(key, convert_fexpr e)
+	| Ast.FFuncCall(s, el) -> Ast.FuncCall(s, List.map (fun x -> convert_fexpr x) el)
 
 and check_expr env = function
 	Ast.Litnum(s) -> Sast.Expr(Sast.Litnum(s), Ast.Num)
 	| Ast.Litstring(s) -> Sast.Expr(Sast.Litstring(s), Ast.String)
-	| Ast.Litfunc(l, f_expr) -> Sast.Expr(Sast.Litfunc(l, check_fexpr l f_expr env), Ast.Func)
+	| Ast.Litfunc(l, f_expr) -> Sast.Expr(Sast.Litfunc(l, check_fexpr l (convert_fexpr f_expr) env), Ast.Func)
 	| Ast.Litlist(l) -> check_list l env
 	| Ast.Litmatrix(l) -> check_matrix l env
 	| Ast.Id(name) -> check_id name env
