@@ -1,7 +1,7 @@
 %{ open Ast %}
 
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET LCSUB RCSUB PIPE
-%token NEWMATRIX MATRIX NUMLIST STRLIST FUNLIST SEMI COMMA 
+%token NEWMATRIX MATRIX LIST SEMI COMMA 
 %token PLUS MINUS TIMES DIVIDE EXP MOD MATMULT FLOG FLN FCOS FSIN
 %token ASSIGN EQ NEQ NOT LT LEQ GT GEQ CONCAT
 %token MATCH QMARK DONE CONT LOOP ANY TRUE DEFAULT PASS
@@ -53,7 +53,7 @@ param_list:
 
 var_type:
 	basic_type			{ $1 }
-	| var_type LBRACKET RBRACKET	{ List($1, 0) }
+	| var_type LIST	{ List($1, 0) }
 
 basic_type:
 	NUM 				{ Num }
@@ -180,19 +180,23 @@ func_expr:
 	| MINUS func_expr			{ FUnop(Uminus, $2) }
 	| NOT func_expr				{ FUnop(Not, $2) }
 	| LPAREN func_expr RPAREN		{ $2 }
-	| FLOG LPAREN expr RPAREN	{ FFCall(KeyFuncCall(Flog, $3))}
-	| FLN LPAREN expr RPAREN	{ FFCall(KeyFuncCall(Fln, $3))}
-	| FCOS LPAREN expr RPAREN	{ FFCall(KeyFuncCall(Fsin, $3))}
-	| FSIN LPAREN expr RPAREN	{ FFCall(KeyFuncCall(Fcos, $3))}
-	| ID LPAREN param_list_call RPAREN	{ FFCall(FuncCall($1, $3))}
+	| FLOG LPAREN func_expr RPAREN	{ FFCall(FKeyFuncCall(Flog, $3))}
+	| FLN LPAREN func_expr RPAREN	{ FFCall(FKeyFuncCall(Fln, $3))}
+	| FCOS LPAREN func_expr RPAREN	{ FFCall(FKeyFuncCall(Fsin, $3))}
+	| FSIN LPAREN func_expr RPAREN	{ FFCall(FKeyFuncCall(Fcos, $3))}
+	| ID LPAREN fparam_list_call RPAREN	{ FFCall(FFuncCall($1, $3))}
 
 param_list_call_opt:
 	/*nothing*/			{ [] }
 	| param_list_call			{List.rev $1}	
 
 param_list_call:
-	expr				{ [] }
+	expr				{ [$1] }
 	| param_list_call COMMA expr 	{ $3 :: $1 }
+
+fparam_list_call:
+		func_expr				{ [$1] }
+		| fparam_list_call COMMA func_expr 	{ $3 :: $1 }
 
 list_expr_list_opt:
 	  /*Nothing*/			{[]}

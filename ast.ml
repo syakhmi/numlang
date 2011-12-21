@@ -20,13 +20,17 @@ type v_type =
 type func_call =
 	  KeyFuncCall of fkeyfuncs * expr
 	| FuncCall of string * expr list
+	
+and ffunc_call =
+	FKeyFuncCall of fkeyfuncs * func_expr
+	| FFuncCall of string * func_expr list
 
 and func_expr =
 	| FLitnum of string
 	| FId of string
 	| FBinop of func_expr * fbop * func_expr
 	| FUnop of uop * func_expr
-	| FFCall of func_call
+	| FFCall of ffunc_call
 
 and expr =
 	  Litnum of string
