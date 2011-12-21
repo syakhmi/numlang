@@ -40,6 +40,13 @@ class NumLangException
 		printstack(2);
 		System.exit(1);
 	}
+	public void InvalidStringIndex(int index)
+	{
+		System.err.println("NumLang Error: Invalid String Index");
+		System.err.println("\tAttempted to reference string element " + index);
+		printstack(2);
+		System.exit(2);
+	}
 	public void InvalidArrayIndex(int index)
 	{
 		System.err.println("NumLang Error: Invalid Array Index");

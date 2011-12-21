@@ -69,6 +69,15 @@ public class FuncValue{
 		
 	}
 
+	public String toString()
+	{
+		String output = "|in[0]";
+		for(int i = 1; i < m_params; i++)
+			output += ", in[" + i + "]";
+		output += "| -> |" + m_function.toString() + "|";
+		return output;
+	}
+
 }
 
 
@@ -221,6 +230,49 @@ class Func{
 			default: 	return null;
 		}
 	}
+
+	private String bopString()
+	{
+		switch(m_bop)
+		{
+			case ADD:	return "+";
+			case SUB:	return "-";
+			case MULT:	return "*";
+			case DIV:	return "/";
+			case EXP:	return "^";
+			case MOD:	return "%";
+			case EQ:	return "==";
+			case NEQ:	return "!=";
+			case LT:	return "<";
+			case LEQ:	return "<=";
+			case GT:	return ">";
+			case GEQ:	return ">=";
+			default:	return "";
+		}
+	}
+
+	private String uopString()
+	{
+		switch(m_uop)
+		{
+			case UMINUS: 	return "-";
+			case NOT:	return "!";
+			default:	return "";
+		}
+	}
+
+	public String toString()
+	{
+		switch(m_type)
+		{
+			case VAR: 	return "in[" + m_index + "]";
+			case CONST:	return m_value.toString();
+			case UNOP: 	return uopString() + "(" + m_right.toString() + ")";
+			case BINOP:	return 	"(" + m_left.toString() + " " + bopString() +
+						" " + m_right.toString() + ")";
+			default: 	return "";
+		}
+	}
 }
 
 class SpecialFunc extends Func
@@ -269,6 +321,27 @@ class SpecialFunc extends Func
 	public SpecialFunc nest(Func[] params)
 	{
 		return new SpecialFunc(m_utype, m_func.nest(params));
+	}
+
+	public String toString()
+	{
+		switch(m_utype)
+		{
+			case SIN:
+				return "sin(" + m_func.toString() + ")";
+			case COS:
+				return "cos(" + m_func.toString() + ")";
+			case LN:
+				return "ln(" + m_func.toString() + ")";
+			case LOG:
+				return "log(" + m_func.toString() + ")";
+			case CEIL:
+				return "ceil(" + m_func.toString() + ")";
+			case FLOOR:
+				return "floor(" + m_func.toString() + ")";
+			default:
+				return null;
+		}
 	}
 
 	
