@@ -89,7 +89,7 @@ public class ListValue<T>
 	private int c_index(NumValue index)
 	{
 		int i = NumLang.Func.floor(index).getValue().intValue();
-		if(i < 0 || i > m_list.size())
+		if(i < 0 || i >= m_list.size())
 			NumLang.Exception.InvalidArrayIndex(i);
 		return i;
 	}
