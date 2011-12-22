@@ -98,17 +98,17 @@ and c_litnum s  =
 	"(new NumValue(new BigRational(\"" ^ s ^ "\"))"
 
 and drop_Ast = function
-	Ast.Num -> "Num"
-	| Ast.String -> "String"
-	| Ast.Func -> "Func"
-	| Ast.Matrix -> "Matrix"
-	| Ast.List(typ) -> "List"
+	Ast.Num -> "NumValue"
+	| Ast.String -> "StringValue"
+	| Ast.Func -> "FuncValue"
+	| Ast.Matrix -> "MatrixValue"
+	| Ast.List(typ) -> "ListValue<" ^ drop_Ast typ ^ ">"
 	| _ -> ""
 
 and c_list el  =
 	match el with hd::tl ->
 		(match hd with Sast.Expr(_, vtype) ->
-			"(new ListValue<" ^ drop_Ast vtype ^ "Value>({" ^ c_sexpr  hd
+			"(new ListValue<" ^ drop_Ast vtype ^ ">({" ^ c_sexpr  hd
 			^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr  e) "" tl ^ "})")
 	| _ -> ""
 
@@ -196,7 +196,7 @@ and mdl_assign il e  =
 
 and c_vdecl name depth e  =
 	match e with Sast.Expr(_, typ) ->
-		"final Var<" ^ drop_Ast typ ^ "Value> " ^ depth_to_us depth ^ " = " ^ c_sexpr  e ^ ";\n"
+		"final Var<" ^ drop_Ast typ ^ "> " ^ depth_to_us depth ^ " = " ^ c_sexpr  e ^ ";\n"
 
 and c_match_command topexpr matchcommand  =
 	let c_match_flow matchcommand =
