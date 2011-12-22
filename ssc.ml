@@ -166,24 +166,24 @@ and check_access s el env =
 	in
 	let typ = vdecl.var_type in
 	let sel = List.map (fun x -> check_expr env x) el in
-	match List.hd sel with Sast.Expr(_, vartype) ->
-		let nums = List.fold_left (fun valid e -> match e with
-			Sast.Expr(_, vtype) -> if vartype <> vtype then 0*valid else 1*valid) 1 sel in
-		(match typ with
-			Ast.Matrix ->
-				if (List.length sel) <> 2 || nums <> 1 then
-					raise (Error("Invalid Matrix Access!"))
-				else
-					Sast.Expr(Sast.Mataccess(s, sel), Ast.Num)
-			| Ast.List(typ) ->
-				let length = List.length sel in
-				if length > (1 + (num_nested_lists typ)) || nums <> 1 then
-					raise (Error("Invalid List Access!"))
-				else
-					let typ = list_access_type typ (length - 1) in
-					Sast.Expr(Sast.Listaccess(s, sel), typ)
-			| _ -> raise (Error("Invalid element access!")))
-	| _ -> raise (Error("Weird Error! (check_access)"))
+	match List.hd sel with
+		Sast.Expr(_, vartype) ->
+			let nums = List.fold_left (fun valid e -> match e with
+				Sast.Expr(_, vtype) -> if vartype <> vtype then 0*valid else 1*valid) 1 sel in
+			(match typ with
+				Ast.Matrix ->
+					if (List.length sel) <> 2 || nums <> 1 then
+						raise (Error("Invalid Matrix Access!"))
+					else
+						Sast.Expr(Sast.Mataccess(s, sel), Ast.Num)
+				| Ast.List(typ) ->
+					let length = List.length sel in
+					if length > (1 + (num_nested_lists typ)) || nums <> 1 then
+						raise (Error("Invalid List Access!"))
+					else
+						let typ = list_access_type typ (length - 1) in
+						Sast.Expr(Sast.Listaccess(s, sel), typ)
+				| _ -> raise (Error("Invalid element access!")))
 
 and check_id name env =
 	let (vdecl, depth) = try
@@ -414,10 +414,10 @@ and check_fcall fcall env =
 			let e = (match e with
 				Sast.Expr(_, typ) -> if typ = Ast.Num then e else raise (Error("NonNum Func Arg!"))) in
 			(match f with
-				Ast.Flog -> Sast.Expr(Sast.FCall("log", [e]), Ast.Num)
-				| Ast.Fln -> Sast.Expr(Sast.FCall("ln", [e]), Ast.Num)
-				| Ast.Fcos -> Sast.Expr(Sast.FCall("cos", [e]), Ast.Num)
-				| Ast.Fsin -> Sast.Expr(Sast.FCall("log", [e]), Ast.Num))
+				Ast.Flog -> Sast.Expr(Sast.FCall("log", 0, [e]), Ast.Num)
+				| Ast.Fln -> Sast.Expr(Sast.FCall("ln", 0, [e]), Ast.Num)
+				| Ast.Fcos -> Sast.Expr(Sast.FCall("cos", 0, [e]), Ast.Num)
+				| Ast.Fsin -> Sast.Expr(Sast.FCall("log", 0, [e]), Ast.Num))
 		| Ast.FuncCall(s, el) ->
 			let (vdecl, depth) = try
 				find_variable env.scope s
@@ -431,7 +431,7 @@ and check_fcall fcall env =
 						if t=Ast.Num then e else raise (Error("Non num argument supplied to fcall " ^ s ^ "!")))
 			) el in
             if vdecl.var_type=Ast.Func then
-				Sast.Expr(Sast.FCall(s, el), Ast.Num)
+				Sast.Expr(Sast.FCall(s, depth, el), Ast.Num)
 			else
 				raise (Error(vdecl.name ^ " not a Func!"))
 				
@@ -442,10 +442,10 @@ and check_ffcall l fcall env =
 			let e = (match e with
 				Sast.Expr(_, typ) -> if typ = Ast.Num then e else raise (Error("NonNum Func Arg!"))) in
 			(match f with
-				Ast.Flog -> Sast.Expr(Sast.FCall("log", [e]), Ast.Num)
-				| Ast.Fln -> Sast.Expr(Sast.FCall("ln", [e]), Ast.Num)
-				| Ast.Fcos -> Sast.Expr(Sast.FCall("cos", [e]), Ast.Num)
-				| Ast.Fsin -> Sast.Expr(Sast.FCall("log", [e]), Ast.Num))
+				Ast.Flog -> Sast.Expr(Sast.FCall("log", 0, [e]), Ast.Num)
+				| Ast.Fln -> Sast.Expr(Sast.FCall("ln", 0, [e]), Ast.Num)
+				| Ast.Fcos -> Sast.Expr(Sast.FCall("cos", 0, [e]), Ast.Num)
+				| Ast.Fsin -> Sast.Expr(Sast.FCall("log", 0, [e]), Ast.Num))
 		| Ast.FuncCall(s, el) ->
 			let (vdecl, depth) = try
 				find_variable env.scope s
@@ -459,7 +459,7 @@ and check_ffcall l fcall env =
 						if t=Ast.Num then e else raise (Error("Non num argument supplied to fcall " ^ s ^ "!")))
 			) el in
             if vdecl.var_type=Ast.Func then
-				Sast.Expr(Sast.FCall(s, el), Ast.Num)
+				Sast.Expr(Sast.FCall(s, depth, el), Ast.Num)
 			else
 				raise (Error(vdecl.name ^ " not a Func!"))
 

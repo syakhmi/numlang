@@ -1,8 +1,51 @@
 open Ast
 open Sast
 open Ssc
-   
-let rec c_binop e1 bop e2  =
+
+(* Java Syntax example: (new FuncValue(no of parameters, new Func() )) *)
+let rec c_litfunc args e =
+    let c_evalparams expr_list =
+        let vartype ex_list =
+			match List.fold_left (fun a b ->
+				match b with
+					Sast.Expr(_, typ) -> if (typ = Ast.Func) then Ast.Func else a
+			) Ast.Num expr_list with
+				Ast.Func -> "new Func[]{"
+				| _ -> "new NumValue[]{"
+        in
+        vartype expr_list ^ List.fold_left (fun a b -> a ^ ", " ^ c_sexpr b) (c_sexpr (List.hd expr_list)) (List.tl expr_list) ^ "}"
+	in
+    let c_ffcall name depth exprlist = 
+		match name with
+			"sin" -> "(new SpecialFunc(SpecialType.SIN, new Func("
+				^ c_sexpr (List.hd exprlist) ^ ")))"
+			| "cos" -> "(new SpecialFunc(SpecialType.COS, new Func("
+				^ c_sexpr (List.hd exprlist) ^ ")))"
+			| "log" -> "(new SpecialFunc(SpecialType.LOG, new Func("
+				^ c_sexpr (List.hd exprlist) ^ ")))"
+			| "ln" -> "(new SpecialFunc(SpecialType.LN, new Func("
+				^ c_sexpr (List.hd exprlist) ^ ")))"
+			| "floor" -> "(new SpecialFunc(SpecialType.FLOOR, new Func("
+				^ c_sexpr (List.hd exprlist) ^ ")))"
+			| "ceil" -> "(new SpecialFunc(SpecialType.CEIL, new Func("
+				^ c_sexpr (List.hd exprlist) ^ ")))"
+			| _ -> "(" ^ (depth_to_us depth) ^ name ^ ".evaluate("
+				^ c_evalparams exprlist ^ "))"
+	in
+	let sargs = String.concat ", " (List.map (fun arg -> 
+		match arg with
+		Sast.Expr(e, _) ->
+			match e with
+				Sast.Funarg(i) -> "(new Func(" ^ string_of_int i ^ "))"
+				| Sast.Litnum(s) -> "(new Func(" ^ c_litnum s ^ "))"
+				| Sast.Binop(e1, op, e2) -> c_fbinop e1 op e2
+				| Sast.Unop(op, e) -> c_funop op e
+				| Sast.FCall(s, depth, el) -> c_ffcall s depth el
+				| _ -> ""
+	) args)
+	in "(new FuncValue (" ^ string_of_int (List.length args) ^ "," ^ sargs ^ "))"
+
+and c_binop e1 bop e2  =
 	let e1 = c_sexpr  e1 in
 	let e2 = c_sexpr  e2 in
 	match bop with
@@ -90,8 +133,8 @@ and c_scall name el  =
 			name ^ ".invoke(" ^ c_sexpr  hd ^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr  e) "" tl ^ ")"
 		| _ -> ""
 
-and c_fcall name el  =
-    "func.evaluate" ^ c_list  el
+and c_fcall name depth el  =
+    "func.evaluate"
 
 and c_sfexpr  expression =
 	match expression with
@@ -106,7 +149,7 @@ and c_sfexpr  expression =
 				| Sast.Binop(e1, bop, e2) -> c_binop e1 bop e2 
 				| Sast.Unop(uop, e) -> c_unop uop e 
 				| Sast.Call(name, el) -> c_scall name el 
-				| Sast.FCall(name, el) -> c_fcall name el 
+				| Sast.FCall(name, depth, el) -> c_fcall name depth el 
 				| Sast.Funarg(i) -> ""
 				| _ -> ""
 
@@ -123,7 +166,7 @@ and c_sexpr  expression =
 				| Sast.Binop(e1, bop, e2) -> c_binop e1 bop e2 
 				| Sast.Unop(uop, e) -> c_unop uop e 
 				| Sast.Call(name, el) -> c_scall name el 
-				| Sast.FCall(name, el) -> c_fcall name el 
+				| Sast.FCall(name, depth, el) -> c_fcall name depth el 
 				| Sast.Funarg(i) -> ""
 				| Sast.Listaccess(s, el) -> ""
 				| Sast.Mataccess(s, el) -> ""
@@ -140,7 +183,7 @@ and c_assign name depth il e  =
 	match cil with
 		[] -> depth_to_us depth ^ name ^ ".assign(" ^ c_sexpr  e ^ ");\n"
 		| hd::[] -> depth_to_us depth ^ name ^ ".set(" ^ hd ^ ", " ^ c_sexpr  e ^ ");\n"
-		| hd::tl ->  depth_to_us depth ^ name ^ mdl_assign cil e 
+		| hd::tl ->  depth_to_us depth ^ name ^ mdl_assign cil e
 
 and mdl_assign il e  =
 	match il with
