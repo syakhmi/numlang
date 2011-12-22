@@ -13,24 +13,24 @@ and c_evalparams expr_list =
 			match b with
 				Sast.Expr(_, typ) -> if (typ = Ast.Func) then Ast.Func else a
 		) Ast.Num expr_list with
-			Ast.Func -> "new Func[]{"
+			Ast.Func -> "new FuncValue.Func[]{"
 			| _ -> "new NumValue[]{"
        in
        vartype expr_list ^ List.fold_left (fun a b -> a ^ ", " ^ c_sexpr b) (c_sexpr (List.hd expr_list)) (List.tl expr_list) ^ "}"
 
 and c_ffcall name depth exprlist = 
 	match name with
-		"sin" -> "(new SpecialFunc(SpecialType.SIN, new Func("
+		"sin" -> "(new FuncValue.SpecialType(SpecialType.SIN, new Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
-		| "cos" -> "(new SpecialFunc(SpecialType.COS, new Func("
+		| "cos" -> "(new FuncValue.SpecialFunc(SpecialType.COS, new Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
-		| "log" -> "(new SpecialFunc(SpecialType.LOG, new Func("
+		| "log" -> "(new FuncValue.SpecialFunc(SpecialType.LOG, new Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
-		| "ln" -> "(new SpecialFunc(SpecialType.LN, new Func("
+		| "ln" -> "(new FuncValue.SpecialFunc(SpecialType.LN, new Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
-		| "floor" -> "(new SpecialFunc(SpecialType.FLOOR, new Func("
+		| "floor" -> "(new FuncValue.SpecialFunc(SpecialType.FLOOR, new Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
-		| "ceil" -> "(new SpecialFunc(SpecialType.CEIL, new Func("
+		| "ceil" -> "(new FuncValue.SpecialFunc(SpecialType.CEIL, new Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
 		| _ -> "(" ^ (depth_to_us depth) ^ name ^ ".evaluate("
 			^ c_evalparams exprlist ^ "))"
@@ -58,18 +58,18 @@ and c_fbinop e1 bop e2  =
 	let e1 = c_sfexpr  e1 in
 	let e2 = c_sfexpr  e2 in
 	match bop with
-		Ast.Add -> "(new Func(" ^ e1 ^ ", BinOp.ADD, " ^ e2 ^ "))"
-		| Ast.Sub -> "(new Func(" ^ e1 ^ ", BinOp.SUB, " ^ e2 ^ "))"
-		| Ast.Mult -> "(new Func(" ^ e1 ^ ", BinOp.MULT, " ^ e2 ^ "))"
-		| Ast.Div -> "(new Func(" ^ e1 ^ ", BinOp.DIV, " ^ e2 ^ "))"
-		| Ast.Mod -> "(new Func(" ^ e1 ^ ", BinOp.EXP, " ^ e2 ^ "))"
-		| Ast.Exp -> "(new Func(" ^ e1 ^ ", BinOp.MOD, " ^ e2 ^ "))"
-		| Ast.Lt -> "(new Func(" ^ e1 ^ ", BinOp.LT, " ^ e2 ^ "))"
-		| Ast.Leq -> "(new Func(" ^ e1 ^ ", BinOp.LEQ, " ^ e2 ^ "))"
-		| Ast.Gt  -> "(new Func(" ^ e1 ^ ", BinOp.GT, " ^ e2 ^ "))"
-		| Ast.Geq -> "(new Func(" ^ e1 ^ ", BinOp.GEQ, " ^ e2 ^ "))"
-		| Ast.Eq -> "(new Func(" ^ e1 ^ ", BinOp.EQ, " ^ e2 ^ "))"
-		| Ast.Neq -> "(new Func(" ^ e1 ^ ", BinOp.NEQ, " ^ e2 ^ "))"
+		Ast.Add -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.ADD, " ^ e2 ^ "))"
+		| Ast.Sub -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.SUB, " ^ e2 ^ "))"
+		| Ast.Mult -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.MULT, " ^ e2 ^ "))"
+		| Ast.Div -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.DIV, " ^ e2 ^ "))"
+		| Ast.Mod -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.EXP, " ^ e2 ^ "))"
+		| Ast.Exp -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.MOD, " ^ e2 ^ "))"
+		| Ast.Lt -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.LT, " ^ e2 ^ "))"
+		| Ast.Leq -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.LEQ, " ^ e2 ^ "))"
+		| Ast.Gt  -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.GT, " ^ e2 ^ "))"
+		| Ast.Geq -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.GEQ, " ^ e2 ^ "))"
+		| Ast.Eq -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.EQ, " ^ e2 ^ "))"
+		| Ast.Neq -> "(new FuncValue.Func(" ^ e1 ^ ", FuncValue.BinOp.NEQ, " ^ e2 ^ "))"
 		| _ -> ""
 
 and c_unop uop e  =
@@ -167,8 +167,8 @@ and c_sfexpr expression =
 	match expression with
 		Sast.Expr(ex, typ) ->
 			match ex with
-				Sast.Funarg(i) -> "(new Func(" ^ string_of_int i ^ "))"
-				| Sast.Litnum(s) -> "(new Func(" ^ c_litnum s ^ "))"
+				Sast.Funarg(i) -> "(new FuncValue.Func(" ^ string_of_int i ^ "))"
+				| Sast.Litnum(s) -> "(new FuncValue.Func(" ^ c_litnum s ^ "))"
 				| Sast.Binop(e1, op, e2) -> c_fbinop e1 op e2
 				| Sast.Unop(op, e) -> c_funop op e
 				| Sast.FCall(s, depth, el) -> c_ffcall s depth el
