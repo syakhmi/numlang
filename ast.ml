@@ -38,6 +38,7 @@ and expr =
 	| Litfunc of string list * func_expr
 	| Litlist of expr list
 	| Litmatrix of expr list list
+	| Access of string * expr list
 	| Id of string
 	| Ref of expr * expr
 	| Slice of expr * expr * expr
