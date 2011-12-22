@@ -118,9 +118,9 @@ and c_matrix ell =
 and c_listaccess s depth il =
 	let cil = List.map (fun x -> c_sexpr  x) il in
 		match cil with
-			[] -> depth_to_us depth ^ s ^ ";\n"
-			| hd::[] -> depth_to_us depth ^ s ^ ".get(" ^ hd ^ ");\n"
-			| hd::tl ->  depth_to_us depth ^ s ^ c_mdlaccess cil
+			[] -> depth_to_us depth ^ s ^ ".value()"
+			| hd::[] -> depth_to_us depth ^ s ^ ".value()" ^ ".get(" ^ hd ^ ")"
+			| hd::tl ->  depth_to_us depth ^ s ^ ".value()" ^ c_mdlaccess cil
 
 and c_mdlaccess cil  =
 	match cil with
@@ -131,7 +131,7 @@ and depth_to_us depth =
 	if depth = 0 then "" else "_" ^ depth_to_us (depth-1)
 
 and c_id name depth  =
-	depth_to_us depth ^ name
+	depth_to_us depth ^ name ^ ".value()"
 
 and c_scall name el typ  =
 	let c_args el = 
@@ -191,7 +191,7 @@ and c_sexpr  expression =
 				| Sast.Litfunc(args, e) -> "c_litfunc args e "
 				| Sast.Litlist(el) -> c_list el 
 				| Sast.Litmatrix(ell) -> c_matrix ell 
-				| Sast.Id(name, depth) -> c_id name depth ^ ".value()" 
+				| Sast.Id(name, depth) -> c_id name depth
 				| Sast.Binop(e1, bop, e2) -> c_binop e1 bop e2 
 				| Sast.Unop(uop, e) -> c_unop uop e 
 				| Sast.Call(name, el) -> c_scall name el typ
