@@ -153,7 +153,7 @@ and mdl_assign il e  =
 
 and c_vdecl name depth e  =
 	match e with Sast.Expr(_, typ) ->
-		"final " ^ drop_Ast typ ^ "Value " ^ depth_to_us depth ^ " = " ^ c_sexpr  e ^ ";\n"
+		"final Var<" ^ drop_Ast typ ^ "Value> " ^ depth_to_us depth ^ " = " ^ c_sexpr  e ^ ";\n"
 
 and c_match_command topexpr matchcommand  =
 	let c_match_flow matchcommand =
