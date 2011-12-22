@@ -121,18 +121,41 @@ and depth_to_us depth =
 and c_id name depth  =
 	depth_to_us depth ^ name
 
-and c_scall name el  =
-	match el with
-		hd::tl ->
-			name ^ ".invoke(" ^ c_sexpr  hd ^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr  e) "" tl ^ ")"
-		| _ -> ""
+and c_scall name el typ  =
+	let c_args el = 
+		match el with
+			hd::tl ->
+				c_sexpr hd ^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr e) "" tl
+			| _ -> ""
+	in
+	match name with
+		"print" ->
+			"System.out.print(" ^ c_args el ^ ")"
+		| "println" ->
+				"System.out.println(" ^ c_args el ^ ")"
+		| "pop" ->
+				c_args el ^ ".pop()"
+		| "rm" ->
+			c_args el ^ ".remove()"
+		| "rmi" ->
+			c_sexpr (List.hd el) ^ ".remove(" ^ c_sexpr (List.hd (List.tl el)) ^ ")"			
+		| "str" ->
+			c_args el ^ ".toString()"
+		| "num" ->
+			c_args el ^ ".toNum()"
+		| "scanln" ->
+			"Numlang.IO.scanln()"
+		| "m" ->
+			"(new MatrixValue(" ^ c_args el ^ "))"
+		| _ ->
+			"((" ^ drop_Ast typ ^ ")" ^ name ^ ".invoke(" ^ c_args el ^ "))"
 
 and c_fcall name depth el  =
-    "func.evaluate" ^ c_ffcall name depth el
+    "func.evaluate"
 
 and c_sfexpr  expression =
 	match expression with
-		Sast.Expr(ex, _) ->
+		Sast.Expr(ex, typ) ->
 			match ex with
 				Sast.Litnum(s) -> c_litnum s 
 				| Sast.Litstring(s) -> "(new StringValue(\"" ^ s ^ "\"))"
@@ -142,14 +165,14 @@ and c_sfexpr  expression =
 				| Sast.Id(name, depth) -> c_id name depth 
 				| Sast.Binop(e1, bop, e2) -> c_binop e1 bop e2 
 				| Sast.Unop(uop, e) -> c_unop uop e 
-				| Sast.Call(name, el) -> c_scall name el 
+				| Sast.Call(name, el) -> c_scall name el typ
 				| Sast.FCall(name, depth, el) -> c_fcall name depth el 
 				| Sast.Funarg(i) -> ""
 				| _ -> ""
 
 and c_sexpr  expression =
 	match expression with
-		Sast.Expr(ex, _) ->
+		Sast.Expr(ex, typ) ->
 			match ex with
 				Sast.Litnum(s) -> c_litnum s 
 				| Sast.Litstring(s) -> "(new StringValue(\"" ^ s ^ "\"))"
@@ -159,7 +182,7 @@ and c_sexpr  expression =
 				| Sast.Id(name, depth) -> c_id name depth ^ ".value()" 
 				| Sast.Binop(e1, bop, e2) -> c_binop e1 bop e2 
 				| Sast.Unop(uop, e) -> c_unop uop e 
-				| Sast.Call(name, el) -> c_scall name el 
+				| Sast.Call(name, el) -> c_scall name el typ
 				| Sast.FCall(name, depth, el) -> c_fcall name depth el 
 				| Sast.Funarg(i) -> ""
 				| Sast.Listaccess(s, el) -> ""
