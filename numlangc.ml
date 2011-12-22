@@ -150,7 +150,7 @@ and c_scall name el typ  =
 		| "rmi" ->
 			c_sexpr (List.hd el) ^ ".remove(" ^ c_sexpr (List.hd (List.tl el)) ^ ")"			
 		| "str" ->
-			c_args el ^ ".toString()"
+			"(new StringValue(" ^ c_args el ^ "))"
 		| "num" ->
 			c_args el ^ ".toNum()"
 		| "scanln" ->
