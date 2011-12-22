@@ -2,9 +2,6 @@ open Ast
 open Sast
 open Ssc
 
-let head_list l =
-    List.rev (List.tl (List.rev l))
-
 (* Java Syntax example: (new FuncValue(no of parameters, new Func() )) *)
 let rec c_litfunc args e =
     let c_evalparams expr_list =
@@ -108,21 +105,15 @@ and drop_Ast = function
 	| Ast.List(typ) -> "ListValue<" ^ drop_Ast typ ^ ">"
 	| _ -> ""
 
-and c_list el  =
-	match el with hd::tl ->
-		(match hd with Sast.Expr(_, vtype) ->
-			"(new ListValue<" ^ drop_Ast vtype ^ ">({" ^ c_sexpr  hd
-			^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr  e) "" tl ^ "})")
-	| _ -> ""
+and c_list el =
+	let vtype = match List.hd el with Sast.Expr(_, vtype) -> vtype
+	and el = List.map (fun e -> c_sexpr e) el in
+	"(new ListValue<" ^ drop_Ast vtype ^ ">({" ^ String.concat "," el ^ "})"
 
-and c_matrix ell  =
-	match ell with
-		hdl::tll ->	"(new MatrixValue(new NumValue[][]{{" ^
-			(match hdl with
-				hd::tl -> c_sexpr  hd ^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr  e) "" tl ^ "}" | _ -> "") ^ List.fold_left (fun rl el ->
-					(match el with
-						hd::tl -> rl ^ ", {" ^ c_sexpr hd ^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr  e) "" tl ^ "}" | _ -> "")) "" tll ^ "}))"
-		| _ -> ""
+and c_matrix ell =
+	let cell = List.map (fun el -> List.map (fun e -> c_sexpr e) el) ell in
+	let cel = List.map (fun el -> "{" ^ String.concat "," el ^ "}") cell in
+	"(new MatrixValue(new NumValue[][]{" ^ String.concat "," cel ^ "})"
 
 and depth_to_us depth =
 	if depth = 0 then "" else "_" ^ depth_to_us (depth-1)
