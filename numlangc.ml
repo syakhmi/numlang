@@ -108,7 +108,7 @@ and drop_Ast = function
 and c_list el =
 	let vtype = match List.hd el with Sast.Expr(_, vtype) -> vtype
 	and el = List.map (fun e -> c_sexpr e) el in
-	"(new ListValue<" ^ drop_Ast vtype ^ ">({" ^ String.concat "," el ^ "})"
+	"(new ListValue<" ^ drop_Ast vtype ^ ">(new "^ drop_Ast vtype ^ "[] {" ^ String.concat "," el ^ "}))"
 
 and c_matrix ell =
 	let cell = List.map (fun el -> List.map (fun e -> c_sexpr e) el) ell in
@@ -119,12 +119,12 @@ and c_listaccess s depth il =
 	let cil = List.map (fun x -> c_sexpr  x) il in
 		match cil with
 			[] -> depth_to_us depth ^ s ^ ".value()"
-			| hd::[] -> depth_to_us depth ^ s ^ ".value()" ^ ".get(" ^ hd ^ ")"
+			| hd::[] -> depth_to_us depth ^ s ^ ".value()" ^ ".get(" ^ hd ^ ".subtract(new NumValue(new BigRational(\"1\"))))"
 			| hd::tl ->  depth_to_us depth ^ s ^ ".value()" ^ c_mdlaccess cil
 
 and c_mdlaccess cil  =
 	match cil with
-		hd::tl -> ".get(" ^ hd ^ ")" ^ c_mdlaccess tl
+		hd::tl -> ".get(" ^ hd ^ ".subtract(new NumValue(new BigRational(\"1\"))))" ^ c_mdlaccess tl
 		| _ -> ""
 
 and depth_to_us depth =
@@ -211,14 +211,14 @@ and c_assign name depth il e  =
 	let cil = List.map (fun x -> c_sexpr  x) il in
 	match cil with
 		[] -> depth_to_us depth ^ name ^ ".assign(" ^ c_sexpr  e ^ ");\n"
-		| hd::[] -> depth_to_us depth ^ name ^ ".set(" ^ hd ^ ", " ^ c_sexpr  e ^ ");\n"
-		| hd::tl ->  depth_to_us depth ^ name ^ mdl_assign cil e
+		| hd::[] -> depth_to_us depth ^ name ^ ".value().set(" ^ hd ^ ".subtract(new NumValue(new BigRational(\"1\"))), " ^ c_sexpr  e ^ ");\n"
+		| hd::tl ->  depth_to_us depth ^ name ^ ".value()" ^ mdl_assign cil e
 
 and mdl_assign il e  =
 	match il with
-		hd::tl -> ".get(" ^ hd ^ ")" ^
+		hd::tl -> ".get(" ^ hd ^ ".subtract(new NumValue(new BigRational(\"1\"))))" ^
 			(match tl with
-				h::[] -> ".set(" ^ h ^ ", " ^ c_sexpr  e ^ ");\n"
+				h::[] -> ".set(" ^ h ^ ".subtract(new NumValue(new BigRational(\"1\"))), " ^ c_sexpr  e ^ ");\n"
 				| h::t -> mdl_assign tl e 
 				| _ -> "")
 		| _ -> ""
