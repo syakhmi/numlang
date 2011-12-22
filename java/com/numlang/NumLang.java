@@ -9,15 +9,27 @@ import com.numlang.*;
 
 public class NumLang
 {
-	public static NumLangStack	Stack = new NumLangStack();
-	public static NumLangIO		IO = new NumLangIO();		
-	public static NumLangBuiltin	Builtin = new NumLangBuiltin();
-	public static NumLangException 	Exception = new NumLangException();
-	public static NumLangKeyFuncs	Func = new NumLangKeyFuncs();
-}
+	public static NumLangIO		IO;		
+	public static NumLangException 	Exception;
+	public static NumLangKeyFuncs	Func;
+	public static NumLangStack	Stack;
 
-class NumLangStack
+	public static void init()
+	{
+		Stack = new NumLangStack();
+		IO = new NumLangIO();
+		Exception = new NumLangException();
+		Func = new NumLangKeyFuncs();
+	}
+/*	public static void Call(String subname){NumLangStack.STK.Call(subname);}
+	public static void Return(){NumLangStack.STK.Return();}
+	public static Iterator<String> iter(){return NumLangStack.STK.iter();}
+*/
+
+public static class NumLangStack
 {
+	public static NumLangStack STK;
+
 	private LinkedList<String> Stack;
 	
 	public NumLangStack()
@@ -29,7 +41,7 @@ class NumLangStack
 	public Iterator<String> iter(){return Stack.iterator();}
 }
 
-class NumLangException
+public static class NumLangException
 {
 	public NumLangException(){};
 
@@ -131,7 +143,7 @@ class NumLangBuiltin {
 	}
 }
 
-class NumLangIO
+public static class NumLangIO
 {
 	private Scanner input;
 
@@ -146,17 +158,17 @@ class NumLangIO
 		return new StringValue(input.next());
 	}
 	
-	public void print(String str) {
-		System.out.print(str);
+	public void print(StringValue str) {
+		System.out.print(str.toString());
 	}
 
-	public void println(String str) {
-		System.out.println(str);
+	public void println(StringValue str) {
+		System.out.println(str.toString());
 	}
 }
 
 
-class NumLangKeyFuncs{
+public static class NumLangKeyFuncs{
 	public NumLangKeyFuncs(){}
 
         public NumValue sin(NumValue value)
@@ -194,3 +206,4 @@ class NumLangKeyFuncs{
         }   
 }
 
+}
