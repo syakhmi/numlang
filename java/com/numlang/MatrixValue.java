@@ -14,6 +14,13 @@ public class MatrixValue
 		m_cols = elements[0].length;
 		m_elements = elements;
 	}
+	public MatrixValue(int rows, int cols)
+		m_rows = rows;
+		m_cols = cols;
+		m_elements = new NumValue[rows][cols];
+		for(int i = 0; i < m_rows; i++)
+			for(int j = 0; j < m_cols; j++)
+				m_elements[i][j] = new NumValue(new BigRational(0));
 
 	public MatrixValue(ListValue<ListValue<NumValue>> elements)
 	{
@@ -36,6 +43,20 @@ public class MatrixValue
 				NumLang.Exception.ListToMatrixJaggedException(m_cols, tmpcol);
 			m_elements[i] = temp[i].convToArray();
 		}
+	}
+
+	public NumValue get(NumValue row, NumValue col)
+	{
+		int i = c_index(row, false);
+		int j = c_index(col, true);
+		
+		return m_elements[i][j];
+	}
+	public void set(NumValue row, NumValue col, NumValue value)
+	{
+		int i = c_index(row, false);
+		int j = c_index(col, true);
+		m_elements[i][j] = value;
 	}
 
 	/*Matrix operations*/
@@ -510,5 +531,15 @@ public class MatrixValue
         public ListValue<MatrixValue> concat(ListValue<MatrixValue> other)
         {   
                 return other.concatFront(this);
-        }  
+        } 
+	private int c_index(NumValue index, boolean bcol)
+        {   
+                int i = NumLang.Func.floor(index).getValue().intValue();
+                
+		if(bcol && (i < 0 || i >= m_cols)
+			NumLang.Exception.InvalidMatrixIndex(i);
+		else if (i < 0 || i >= m_rows)
+                        NumLang.Exception.InvalidMatrixIndex(i);
+                return i;
+        }
 }

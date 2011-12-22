@@ -242,6 +242,6 @@ let _ =
     let prog = Parser.program Scanner.token lexbuf in
 	let checked_prog = Ssc.check_program prog in
     let compiled_prog = c_prog checked_prog in
-    let header = "import com.numlang;\n\npublic class Runner\n{\npublic static void main(String[] args)\n{\n" in
+    let header = "import com.numlang.*;\n\npublic class Runner\n{\npublic static void main(String[] args)\n{\n" in
     let footer = "}\n}\n" in
     print_string (header ^ compiled_prog ^ footer)

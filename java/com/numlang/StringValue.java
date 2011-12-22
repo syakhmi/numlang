@@ -57,6 +57,10 @@ public class StringValue {
 		int j = c_index(b);
 		return new StringValue(this.value.substring(i, j));
 	}
+	public NumValue toNum()
+	{
+		return new NumValue(new BigRational(this.value));
+	}
 
 	private int c_index(NumValue index)
 	{
