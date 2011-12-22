@@ -41,7 +41,7 @@ sdecl:
 /* Defines parameters to a subroutine and basic types*/
 param_list_opt:
 	/*nothing*/			{ [] }
-	| param_list			{List.rev $1}	
+	| param_list			{$1}	
 
 param_list:
 	var_type ID			{ [{	vname = $2;

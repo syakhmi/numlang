@@ -357,19 +357,21 @@ and check_scall name args env =
 	in
 		let typ = vdecl.var_type in
 		if typ = Ast.Subr then
+			match vdecl.return_type with
+			Some(return_typ) -> 
 			match vdecl.args with
 			Some(vargs) ->
-			let args = List.map (fun x ->
-				check_expr env x
-			) args in
-			let sargs = List.map2 (fun e d ->
-				match e with
-				Sast.Expr(exp, typ) ->
-					if typ = d.var_type then e else
-						raise (Error("Incorrect type of sub arg!"))
-			) args vargs in
-			Sast.Expr(Sast.Call(name, sargs), typ)
-			| _ -> raise (Error("Subr " ^ name ^ " has no args!"))
+				let args = List.map (fun x ->
+					check_expr env x
+				) args in
+				let sargs = List.map2 (fun e d ->
+					match e with
+					Sast.Expr(_, typ) ->
+						if typ = d.var_type then e else
+							raise (Error("Incorrect type of sub arg!"))
+				) args vargs in
+				Sast.Expr(Sast.Call(name, sargs), return_typ)
+			| _ -> raise (Error("Subr " ^ name ^ " has no args def!"))
 		else
     		raise (Error(name ^ " is not a Sub!"))
 
