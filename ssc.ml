@@ -120,7 +120,7 @@ and check_matrix l env =
 			and rows = List.fold_left (fun rowcount row -> rowcount + 1) 0 returnmatrix
 			and cols = List.fold_left (fun colcount col -> colcount + 1) 0 (List.hd returnmatrix)
 		in if b=1 & b2=1 then
-			Sast.Expr(Sast.Litmatrix(returnmatrix), Ast.Matrix(rows, cols))
+			Sast.Expr(Sast.Litmatrix(returnmatrix), Ast.Matrix)
 		else raise (Error("Invalid matrix"))
 	with Failure(hd) -> raise (Error("Invalid matrix"))
 
@@ -131,10 +131,49 @@ and check_list l env =
 			let b = List.fold_left (fun valid e -> match e with
 				Sast.Expr(_, vtype) -> if vartype <> vtype then 0*valid else 1*valid) 1 returnlist
 			and len = List.fold_left (fun i e -> i + 1) 0 returnlist
-		in if b = 1 then Sast.Expr(Sast.Litlist(returnlist), Ast.List(vartype,len))
+		in if b = 1 then Sast.Expr(Sast.Litlist(returnlist), Ast.List(vartype))
 		else raise (Error("list of multiple types"))
 	with Failure(hd) -> raise (Error("Empty list"))
-   
+
+and num_nested_lists = function
+	Ast.List(typ) -> 1 + num_nested_lists typ
+	| _ -> 0
+
+and list_access_type typ num = 
+	if num = 0 then
+		typ
+	else
+		match typ with
+			Ast.List(t) -> list_access_type t (num -1)
+			| _ -> raise (Error("Invalid attempt to find list element access type!"))
+
+and check_access s el env =
+	let vdecl = try
+		find_variable env.scope s
+	with Not_found ->
+		raise (Error("undeclared identifier " ^ s))
+	in
+	let typ = vdecl.var_type in
+	let sel = List.map (fun x -> check_expr env x) el in
+	match List.hd sel with Sast.Expr(_, vartype) ->
+		let nums = List.fold_left (fun valid e -> match e with
+			Sast.Expr(_, vtype) -> if vartype <> vtype then 0*valid else 1*valid) 1 sel in
+		(match typ with
+			Ast.Matrix ->
+				if (List.length sel) <> 2 || nums <> 1 then
+					raise (Error("Invalid Matrix Access!"))
+				else
+					Sast.Expr(Sast.Mataccess(s, sel), Ast.Num)
+			| Ast.List(typ) ->
+				let length = List.length sel in
+				if length > (1 + (num_nested_lists typ)) || nums <> 1 then
+					raise (Error("Invalid List Access!"))
+				else
+					let typ = list_access_type typ (length - 1) in
+					Sast.Expr(Sast.Listaccess(s, sel), typ)
+			| _ -> raise (Error("Invalid element access!")))
+	| _ -> raise (Error("Weird Error! (check_access)"))
+
 and check_id name env =
 	let vdecl = try
 		find_variable env.scope name
@@ -155,8 +194,8 @@ and check_unop op e env =
 					if t = Ast.Func then
 						Sast.Expr(Sast.Unop(op, e), Ast.Func)
 					else
-						if t = Ast.Matrix(-1,-1) then
-							Sast.Expr(Sast.Unop(op, e), Ast.Matrix(-1,-1))
+						if t = Ast.Matrix then
+							Sast.Expr(Sast.Unop(op, e), Ast.Matrix)
 						else raise (Error("Illegal Unary Operator!"))
     		else
 				if op = Ast.Not then
@@ -179,8 +218,8 @@ and check_funop l op e env =
 				if t = Ast.Func then
 					Sast.Expr(Sast.Unop(op, e), Ast.Func)
 				else
-					if t = Ast.Matrix(-1,-1) then
-						Sast.Expr(Sast.Unop(op, e), Ast.Matrix(-1,-1))
+					if t = Ast.Matrix then
+						Sast.Expr(Sast.Unop(op, e), Ast.Matrix)
 					else raise (Error("Illegal Unary Operator!"))
    		else
 			if op = Ast.Not then
@@ -201,8 +240,8 @@ and check_binop e1 op e2 env =
         	Sast.Expr(_, t2) ->
     			(* Case for +,-,*,%,/,^ operators *)
     			if op = Ast.Add || op = Ast.Sub|| op = Ast.Mult || op = Ast.Mod || op = Ast.Exp then
-        			if (t1 = Ast.Matrix(-1,-1) && (t2 = Ast.Num || t2 = Ast.Matrix(-1,-1)))|| (t2 = Ast.Matrix(-1,-1) && t1 = Ast.Num) then
-            			Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix(-1,-1))
+        			if (t1 = Ast.Matrix && (t2 = Ast.Num || t2 = Ast.Matrix))|| (t2 = Ast.Matrix && t1 = Ast.Num) then
+            			Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix)
             		else if (t1 = Ast.Num && t2 = Ast.Num) then
                 		Sast.Expr(Sast.Binop(e1, op, e2), Ast.Num)
                 	else if (t1 = Ast.Func && (t2 = Ast.Func || t2 = Ast.Num)) || (t2 = Ast.Func && t1 = Ast.Num) then
@@ -217,8 +256,8 @@ and check_binop e1 op e2 env =
 
 				(* Case for # *)
 				else if op = Ast.MatMult then
-					if t1 = Ast.Matrix(-1,-1) && t2 = Ast.Matrix(-1,-1) then
-						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix(-1,-1))
+					if t1 = Ast.Matrix && t2 = Ast.Matrix then
+						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix)
 					else raise (Error("Illegal Matrix Multiplication"))
 					
 				(* Case for <, <=, >, >= *)
@@ -244,8 +283,8 @@ and check_binop e1 op e2 env =
 					if t1 = Ast.String && t2 = Ast.String then
 						Sast.Expr(Sast.Binop(e1, op, e2), Ast.String)
 					else (match t1 with 
-						Ast.List(vartype,len) -> (match t2 with 
-							Ast.List(vartype,len2) -> Sast.Expr(Sast.Binop(e1, op, e2), Ast.List(vartype,len+len2))
+						Ast.List(vartype) -> (match t2 with 
+							Ast.List(vartype) -> Sast.Expr(Sast.Binop(e1, op, e2), Ast.List(vartype))
 							| _ -> raise (Error("Illegal List Concatenation!")))
 						| _ -> raise (Error("Illegal Concatenation!")))					
 						
@@ -260,8 +299,8 @@ and check_fbinop l e1 op e2 env =
         	Sast.Expr(_, t2) ->
     			(* Case for +,-,*,%,/,^ operators *)
     			if op = Ast.Add || op = Ast.Sub|| op = Ast.Mult || op = Ast.Mod || op = Ast.Exp then
-        			if (t1 = Ast.Matrix(-1,-1) && (t2 = Ast.Num || t2 = Ast.Matrix(-1,-1)))|| (t2 = Ast.Matrix(-1,-1) && t1 = Ast.Num) then
-            			Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix(-1,-1))
+        			if (t1 = Ast.Matrix && (t2 = Ast.Num || t2 = Ast.Matrix))|| (t2 = Ast.Matrix && t1 = Ast.Num) then
+            			Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix)
             		else if (t1 = Ast.Num && t2 = Ast.Num) then
                 		Sast.Expr(Sast.Binop(e1, op, e2), Ast.Num)
                 	else if (t1 = Ast.Func && (t2 = Ast.Func || t2 = Ast.Num)) || (t2 = Ast.Func && t1 = Ast.Num) then
@@ -276,8 +315,8 @@ and check_fbinop l e1 op e2 env =
 
 				(* Case for # *)
 				else if op = Ast.MatMult then
-					if t1 = Ast.Matrix(-1,-1) && t2 = Ast.Matrix(-1,-1) then
-						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix(-1,-1))
+					if t1 = Ast.Matrix && t2 = Ast.Matrix then
+						Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix)
 					else raise (Error("Illegal Matrix Multiplication"))
 
 				(* Case for <, <=, >, >= *)
@@ -303,8 +342,8 @@ and check_fbinop l e1 op e2 env =
 					if t1 = Ast.String && t2 = Ast.String then
 						Sast.Expr(Sast.Binop(e1, op, e2), Ast.String)
 					else (match t1 with 
-						Ast.List(vartype,len) -> (match t2 with 
-							Ast.List(vartype,len2) -> Sast.Expr(Sast.Binop(e1, op, e2), Ast.List(vartype,len+len2))
+						Ast.List(vartype) -> (match t2 with 
+							Ast.List(vartype) -> Sast.Expr(Sast.Binop(e1, op, e2), Ast.List(vartype))
 							| _ -> raise (Error("Illegal List Concatenation!")))
 						| _ -> raise (Error("Illegal Concatenation!")))					
 
@@ -406,6 +445,7 @@ and check_expr env = function
 	| Ast.Litfunc(l, f_expr) -> Sast.Expr(Sast.Litfunc(l, check_fexpr l (convert_fexpr f_expr) env), Ast.Func)
 	| Ast.Litlist(l) -> check_list l env
 	| Ast.Litmatrix(l) -> check_matrix l env
+	| Ast.Access(s, el) -> check_access s el env
 	| Ast.Id(name) -> check_id name env
 	| Ast.Binop(e1, op, e2) -> check_binop e1 op e2 env
 	| Ast.Unop(op, e) -> check_unop op e env
@@ -476,7 +516,6 @@ and check_cassign name e env =
 				Sast.Cdecl(name, se)
 		
 	
-
 and check_eassign name l e env =
 	try
 		let vdecl = find_nonlocal_variable env.scope name in

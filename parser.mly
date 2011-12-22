@@ -53,13 +53,13 @@ param_list:
 
 var_type:
 	basic_type			{ $1 }
-	| var_type LIST	{ List($1, 0) }
+	| var_type LIST	{ List($1) }
 
 basic_type:
 	NUM 				{ Num }
 	| STRING 			{ String }
 	| FUNC				{ Func }
-	| MATRIX			{ Matrix(0, 0) }
+	| MATRIX			{ Matrix }
 
 /* Rules for a statement in a program */
 stmt_list:

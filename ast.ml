@@ -14,8 +14,8 @@ type v_type =
 	| String
 	| Func
 	| Subr
-	| Matrix of int * int
-	| List of v_type * int
+	| Matrix
+	| List of v_type
 
 type func_call =
 	  KeyFuncCall of fkeyfuncs * expr
