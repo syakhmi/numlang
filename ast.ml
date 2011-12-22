@@ -5,7 +5,7 @@ type bop = 	Add | Sub | Mult | Div | Exp | Mod | MatMult
 type uop = Uminus | Not
 type fkeyfuncs =  Flog | Fln | Fcos | Fsin
 type cftype = Cont | Done | Loop
-type matchcmptype = Meq | Mneq | Mlt | Mleq | Mgt | Mgeq | Any | Default
+type matchcmptype = Meq | Mneq | Mlt | Mleq | Mgt | Mgeq | Any
 type mutab = Const | Mutable
 
 type v_type =

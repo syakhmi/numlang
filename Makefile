@@ -5,6 +5,7 @@ PB=parser
 AB=ast
 SAB=sast
 SC=ssc
+NC=numlangc
 
 SCANNER= $(SB).mll
 PARSER= $(PB).mly
@@ -34,7 +35,8 @@ all: $(SCANNER) $(PARSER)
 	$(OCC) $(OCCOPTS) $(SCANL)
 	$(OCC) $(OCCOPTS) $(PARSL)
 	$(OCC) $(OCCOPTS) $(SC).ml
-	$(OCC) -o $(SC) $(PB).cmo $(SB).cmo $(SC).cmo $(SAB).cmo
+	$(OCC) $(OCCOPTS) $(NC).ml
+	$(OCC) -o $(NC) $(PB).cmo $(SB).cmo $(SC).cmo $(NC).cmo $(SAB).cmo
 
 debug: $(SCANNER) $(PARSER)
 	$(OCL) $(OCLOPTS) $(SCANNER)
@@ -45,7 +47,8 @@ debug: $(SCANNER) $(PARSER)
 	$(OCC) $(OCCDEBUGOPTS) $(SCANL)
 	$(OCC) $(OCCDEBUGOPTS) $(PARSL)
 	$(OCC) $(OCCDEBUGOPTS) $(SC).ml
-	$(OCC) -g -o $(SC) $(PB).cmo $(SB).cmo $(SC).cmo $(SAB).cmo
+	$(OCC) $(OCCDEBUGOPTS) $(NC).ml
+	$(OCC) -g -o $(NC) $(PB).cmo $(SB).cmo $(SC).cmo $(NC).cmo $(SAB).cmo
 
 clean: $(SCANL) $(PARSL) $(PARSI)
 	rm $(SCANL)

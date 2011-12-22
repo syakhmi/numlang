@@ -37,14 +37,24 @@ let new_symbol_table parent l =
 
 ]@l; depth = parent.depth + 1}
 
-let root_symbol_table =
-    {parent = None; variables = [
-        {name="log";const=true;var_type=Ast.Func;return_type=None;args=None};
-        {name="ln";const=true;var_type=Ast.Func;return_type=None;args=None};
-        {name="cos";const=true;var_type=Ast.Func;return_type=None;args=None};
-        {name="log";const=true;var_type=Ast.Func;return_type=None;args=None}
+let predefined_funcs = [
+	{name="log";const=true;var_type=Ast.Func;return_type=None;args=None};
+    {name="ln";const=true;var_type=Ast.Func;return_type=None;args=None};
+    {name="cos";const=true;var_type=Ast.Func;return_type=None;args=None};
+    {name="log";const=true;var_type=Ast.Func;return_type=None;args=None}
+]
 
-];depth = 0}
+let predefined_subs = [
+	{name="str";const=true;var_type=Ast.Subr;return_type=Some(Ast.String);args=Some([{name="";const=false;var_type=Ast.Num;return_type=None;args=None}])};
+	{name="num";const=true;var_type=Ast.Subr;return_type=Some(Ast.Num);args=Some([{name="";const=false;var_type=Ast.String;return_type=None;args=None}])};
+	{name="scanln";const=true;var_type=Ast.Subr;return_type=Some(Ast.String);args=Some([])};
+	{name="print";const=true;var_type=Ast.Subr;return_type=Some(Ast.String);args=Some([{name="";const=false;var_type=Ast.String;return_type=None;args=None}])};
+	{name="println";const=true;var_type=Ast.Subr;return_type=Some(Ast.String);args=Some([{name="";const=false;var_type=Ast.String;return_type=None;args=None}])};
+	{name="m";const=true;var_type=Ast.Subr;return_type=Some(Ast.Matrix);args=Some([{name="";const=false;var_type=Ast.Num;return_type=None;args=None};{name="";const=false;var_type=Ast.Num;return_type=None;args=None}])}
+]
+
+let root_symbol_table =
+    {parent = None; variables = predefined_funcs@predefined_subs;depth = 0}
 
 let rec find_variable (scope : symbol_table) name =
    try
@@ -351,10 +361,8 @@ and check_fbinop l e1 op e2 env =
 				else raise (Error("Illegal Binary Operation"))
 
 and check_scall name args env =
-	let (vdecl, depth) = try
-    	find_variable env.scope name
-	with Not_found -> raise (Error("Undeclared sub identifier " ^ name))
-	in
+	try
+    	let (vdecl, depth) = find_variable env.scope name in
 		let typ = vdecl.var_type in
 		if typ = Ast.Subr then
 			match vdecl.return_type with
@@ -374,6 +382,30 @@ and check_scall name args env =
 			| _ -> raise (Error("Subr " ^ name ^ " has no args def!"))
 		else
     		raise (Error(name ^ " is not a Sub!"))
+	with Not_found -> 	let sargs = List.map (fun x -> check_expr env x ) args in
+		(match name with
+		"pop" ->
+			if (List.length sargs) = 1 then
+				match (List.hd sargs) with
+					Sast.Expr(_, List(typ)) -> Sast.Expr(Sast.Call(name, sargs), typ)
+					| _ -> raise (Error("Pop requires a List as its argument"))
+			else
+				raise (Error("Incorrect number of args supplied to sub identifier " ^ name))
+		| "rm" ->
+			if (List.length sargs) = 1 then
+				match (List.hd sargs) with
+					Sast.Expr(_, List(typ)) -> Sast.Expr(Sast.Call(name, sargs), typ)
+					| _ -> raise (Error("Rm requires a List as its argument"))
+			else
+				raise (Error("Incorrect number of args supplied to sub identifier " ^ name))
+		| "rmi" ->
+			if (List.length sargs) = 2 then
+				match (List.nth sargs ((List.length sargs)-1)) with
+					Sast.Expr(_, List(typ)) -> Sast.Expr(Sast.Call(name, sargs), typ)
+					| _ -> raise (Error("Pop requires a List as its argument"))
+			else
+				raise (Error("Incorrect number of args supplied to sub identifier " ^ name))
+		| _ -> raise (Error("Undeclared sub identifier " ^ name)))
 
 and check_fcall fcall env =
 	match fcall with
@@ -464,7 +496,7 @@ and check_match ms env =
         let me = check_expr env x.match_expr in
         match me with
             Sast.Expr(e, t) ->
-                if (t=top_t||x.match_cmp=Ast.Any||x.match_cmp=Ast.Default) && (t=Ast.String || t=Ast.Num) then
+                if (t=top_t||x.match_cmp=Ast.Any) && (t=Ast.String || t=Ast.Num) then
                     {sf_type=x.f_type;smatch_cmp=x.match_cmp;smatch_expr=me;smatch_stmt=(check_stmt env x.match_stmt)}
                 else
                 raise (Error("Match stmt type error!"))
@@ -624,8 +656,8 @@ let check_program stmtl =
 		check_stmt env stmt
 	) stmtl
 
-let _ =
+(*let _ =
 	let lexbuf = Lexing.from_channel stdin in
 	let prog = Parser.program Scanner.token lexbuf in
 	let checked_program = check_program prog in
-	Printf.printf "done\n"
+	Printf.printf "done\n"*)

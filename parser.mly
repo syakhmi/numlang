@@ -4,7 +4,7 @@
 %token NEWMATRIX MATRIX LIST SEMI COMMA 
 %token PLUS MINUS TIMES DIVIDE EXP MOD MATMULT FLOG FLN FCOS FSIN
 %token ASSIGN EQ NEQ NOT LT LEQ GT GEQ CONCAT
-%token MATCH QMARK DONE CONT LOOP ANY TRUE DEFAULT PASS
+%token MATCH QMARK DONE CONT LOOP ANY TRUE PASS
 %token NUM STRING FUNC SUB CONST EXTERN INCLUDE POINT
 %token EOF
 %token <string>	LITINT
@@ -80,7 +80,7 @@ stmt:
 
 /* Rules for match statements */
 match_list:
-	/*nothing*/
+	/*nothing*/				{ [] }
 	| match_list match_cmd  { $2 :: $1 }
 
 match_cmd:
@@ -100,7 +100,6 @@ match_cond:
 	| expr				{ (Meq, $1) }
 	| TRUE				{ (Mneq, Litnum("0")) } 
 	| ANY				{ (Any, Litnum("0")) }
-	| DEFAULT			{ (Default, Litnum("0")) }
 
 match_cmp:
 	NEQ				{ Mneq }
