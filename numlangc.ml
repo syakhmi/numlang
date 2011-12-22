@@ -140,9 +140,9 @@ and c_scall name el typ  =
 	in
 	match name with
 		"print" ->
-			"NumLang.IO.print(" ^ c_args el ^ ")"
+			"NumLang.IO.print(new StringValue(" ^ c_args el ^ "))"
 		| "println" ->
-				"NumLang.IO.println(" ^ c_args el ^ ")"
+				"NumLang.IO.println(new StringValue(" ^ c_args el ^ "))"
 		| "pop" ->
 				c_args el ^ ".pop()"
 		| "rm" ->
