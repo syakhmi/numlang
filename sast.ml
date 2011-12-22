@@ -11,7 +11,7 @@ and sexpr =
    | Litmatrix of expr_wrapper list list
    | Mataccess of string * expr_wrapper list
    | Listaccess of string * expr_wrapper list
-   | Id of string
+   | Id of string * int
    | Ref of expr_wrapper * expr_wrapper
    | Slice of expr_wrapper * expr_wrapper * expr_wrapper
    | Binop of expr_wrapper * bop * expr_wrapper
@@ -23,10 +23,10 @@ and sexpr =
 and sstmt =
      Block of sstmt list
    | Match of smatch_statement
-   | Assign of string * expr_wrapper list  * expr_wrapper
-   | Vdecl of string * expr_wrapper
-   | Cdecl of string * expr_wrapper
-   | Externassign of string * expr_wrapper list * expr_wrapper
+   | Assign of string * int * expr_wrapper list  * expr_wrapper
+   | Vdecl of string * int * expr_wrapper
+   | Cdecl of string * int * expr_wrapper
+   | Externassign of string * int * expr_wrapper list * expr_wrapper
    | Exprstmt of expr_wrapper
    | Pass
    | Subdecl of string * Ast.var_decl list * sstmt list

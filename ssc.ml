@@ -13,7 +13,8 @@ type variable_decl = {
 
 type symbol_table = {
    parent : symbol_table option;
-   mutable variables : variable_decl list
+   mutable variables : variable_decl list;
+   depth : int
 }
 
 let rec sublist b e l =
@@ -34,7 +35,7 @@ let new_symbol_table parent l =
         {name="cos";const=true;var_type=Ast.Func;return_type=None;args=None};
         {name="log";const=true;var_type=Ast.Func;return_type=None;args=None}
 
-]@l}
+]@l; depth = parent.depth + 1}
 
 let root_symbol_table =
     {parent = None; variables = [
@@ -43,11 +44,11 @@ let root_symbol_table =
         {name="cos";const=true;var_type=Ast.Func;return_type=None;args=None};
         {name="log";const=true;var_type=Ast.Func;return_type=None;args=None}
 
-]}
+];depth = 0}
 
 let rec find_variable (scope : symbol_table) name =
    try
-       List.find (fun vdecl -> name = vdecl.name) scope.variables
+       (List.find (fun vdecl -> name = vdecl.name) scope.variables, scope.depth)
    with Not_found ->
        match scope.parent with
            Some(parent) -> find_variable parent name
@@ -55,7 +56,7 @@ let rec find_variable (scope : symbol_table) name =
 
 let rec find_local_variable (scope : symbol_table) name =
    try
-       List.find (fun vdecl -> name = vdecl.name) scope.variables
+       (List.find (fun vdecl -> name = vdecl.name) scope.variables, scope.depth)
    with Not_found ->
        raise Not_found
 
@@ -77,13 +78,13 @@ and check_fid s l env =
     if i > -1 then
         Sast.Expr(Sast.Funarg(i), Ast.Num)
     else
-		let vdecl = try
+		let (vdecl, depth) = try
         	find_variable env.scope s
 		with Not_found ->
 			raise (Error("undeclared identifier " ^ s))
 		in
 		let typ = vdecl.var_type in
-		Sast.Expr(Sast.Id(s), typ))
+		Sast.Expr(Sast.Id(s, depth), typ))
 
 and check_fexpr l f_expr env =
     match f_expr with
@@ -148,7 +149,7 @@ and list_access_type typ num =
 			| _ -> raise (Error("Invalid attempt to find list element access type!"))
 
 and check_access s el env =
-	let vdecl = try
+	let (vdecl, depth) = try
 		find_variable env.scope s
 	with Not_found ->
 		raise (Error("undeclared identifier " ^ s))
@@ -175,13 +176,13 @@ and check_access s el env =
 	| _ -> raise (Error("Weird Error! (check_access)"))
 
 and check_id name env =
-	let vdecl = try
+	let (vdecl, depth) = try
 		find_variable env.scope name
 	with Not_found ->
 		raise (Error("undeclared identifier " ^ name))
 	in
 	let typ = vdecl.var_type in
-	Sast.Expr(Sast.Id(name), typ)
+	Sast.Expr(Sast.Id(name, depth), typ)
 
 and check_unop op e env =
     let e = check_expr env e in
@@ -350,7 +351,7 @@ and check_fbinop l e1 op e2 env =
 				else raise (Error("Illegal Binary Operation"))
 
 and check_scall name args env =
-	let vdecl = try
+	let (vdecl, depth) = try
     	find_variable env.scope name
 	with Not_found -> raise (Error("Undeclared sub identifier " ^ name))
 	in
@@ -384,7 +385,7 @@ and check_fcall fcall env =
 				| Ast.Fcos -> Sast.Expr(Sast.FCall("cos", [e]), Ast.Num)
 				| Ast.Fsin -> Sast.Expr(Sast.FCall("log", [e]), Ast.Num))
 		| Ast.FuncCall(s, el) ->
-			let vdecl = try
+			let (vdecl, depth) = try
 				find_variable env.scope s
 			with Not_found ->
 				raise (Error("undeclared function identifier " ^ s))
@@ -412,7 +413,7 @@ and check_ffcall l fcall env =
 				| Ast.Fcos -> Sast.Expr(Sast.FCall("cos", [e]), Ast.Num)
 				| Ast.Fsin -> Sast.Expr(Sast.FCall("log", [e]), Ast.Num))
 		| Ast.FuncCall(s, el) ->
-			let vdecl = try
+			let (vdecl, depth) = try
 				find_variable env.scope s
 			with Not_found ->
 				raise (Error("undeclared function identifier " ^ s))
@@ -470,7 +471,7 @@ and check_match ms env =
 
 and check_assign name l e env =
 	try
-		let vdecl = find_local_variable env.scope name in
+		let (vdecl, depth) = find_local_variable env.scope name in
 		if vdecl.const = true then
 			raise (Error("Variable " ^ name ^ " is const!"))
 		else
@@ -479,7 +480,7 @@ and check_assign name l e env =
 				Sast.Expr(_, typ) ->
 					if typ=vdecl.var_type then
 						let sl = List.map (fun x -> check_expr env x) l in
-						Sast.Assign(name, sl, se)
+						Sast.Assign(name, depth, sl, se)
 					else raise (Error("Cannot reassign " ^ name ^ " a new type!"))
 	with Not_found ->
 		let se = check_expr env e in
@@ -490,12 +491,12 @@ and check_assign name l e env =
 					| [] ->
 						let vdecl = {name=name;const=false;var_type=typ;return_type=None;args=None} in
 						env.scope.variables <- vdecl::env.scope.variables;
-						Sast.Vdecl(name, se))
+						Sast.Vdecl(name, env.scope.depth, se))
     	
 
 and check_cassign name e env =
 	try
-		let vdecl = find_local_variable env.scope name in
+		let (vdecl, depth) = find_local_variable env.scope name in
 		if vdecl.const = true then
 	        raise (Error("Local variable " ^ name ^ " already const!"))
 	    else
@@ -505,7 +506,7 @@ and check_cassign name e env =
 				if typ=vdecl.var_type then
 					let vdecl = {vdecl with const=true} in
 					env.scope.variables <- vdecl::env.scope.variables;
-					Sast.Cdecl(name, se)
+					Sast.Assign(name, env.scope.depth, [], se)
 				else raise (Error("Cannot const reassign " ^ name ^ " with a new type!"))
 	with Not_found ->
 		let se = check_expr env e in
@@ -513,18 +514,18 @@ and check_cassign name e env =
 			Sast.Expr(_, typ) ->
 				let vdecl = {name=name;const=true;var_type=typ;return_type=None;args=None} in
 				env.scope.variables <- vdecl::env.scope.variables;
-				Sast.Cdecl(name, se)
+				Sast.Cdecl(name, env.scope.depth, se)
 		
 	
 and check_eassign name l e env =
 	try
-		let vdecl = find_nonlocal_variable env.scope name in
+		let (vdecl, depth) = find_nonlocal_variable env.scope name in
 		let se = check_expr env e in
 		match se with
 			Sast.Expr(_, typ) ->
 				if typ=vdecl.var_type then
 	    			let sl = List.map (fun x -> check_expr env x) l in
-			    	Sast.Assign(name, sl, se)
+			    	Sast.Assign(name, depth, sl, se)
 				else raise (Error("Cannot extern assign " ^ name ^ " with a new type!"))
 	with Not_found ->
     	raise (Error("External variable " ^ name ^ " has not been declared!"))
