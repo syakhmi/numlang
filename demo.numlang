@@ -16,12 +16,12 @@ rm<<strList>>;
 str2 = callMe<<4, strList>>;
 w = call2<<>>;
 w = 43;
-x = "hello";
+x = scanln<<>>;
 print<<x>>;
 match(w)
 {
 	cont: w - (w % 10) ? {x = 1;}
-	loop: > 22 ? {x =  - 1;}
+	loop: > 22 ? {x =  - 1;extern w = w -1;println<<"here">>;}
 	<= 12 % 4 ? pass;
 	done: true ? pass;
 }
