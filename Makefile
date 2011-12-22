@@ -51,10 +51,11 @@ debug: $(SCANNER) $(PARSER)
 	$(OCC) -g -o $(NC) $(PB).cmo $(SB).cmo $(SC).cmo $(NC).cmo $(SAB).cmo
 
 clean: $(SCANL) $(PARSL) $(PARSI)
-	rm $(SCANL)
-	rm $(PARSL)
-	rm $(PARSI)
-	rm *.cmi
-	rm *.cmo
-	rm ssc
-	rm parser.output
+	-rm $(SCANL)
+	-rm $(PARSL)
+	-rm $(PARSI)
+	-rm *.cmi
+	-rm *.cmo
+#	-rm ssc
+	-rm parser.output
+	-rm $(NC)

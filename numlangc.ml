@@ -52,7 +52,7 @@ and c_funop uop e  =
 		| Ast.Not -> "(new Func(UnOp.NOT, " ^ e ^ "))"
 
 and c_litnum s  =
-	"(new NumValue(new BigRational(\"" ^ s ^ "\"))"
+	"(new NumValue(new BigRational(\"" ^ s ^ "\")))"
 
 and drop_Ast = function
 	Ast.Num -> "NumValue"
@@ -71,7 +71,7 @@ and c_list el  =
 
 and c_matrix ell  =
 	match ell with
-		hdl::tll ->	"(new MatrixValue(new NumValue[][]={{" ^
+		hdl::tll ->	"(new MatrixValue(new NumValue[][]{{" ^
 			(match hdl with
 				hd::tl -> c_sexpr  hd ^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr  e) "" tl ^ "}" | _ -> "") ^ List.fold_left (fun rl el ->
 					(match el with
@@ -119,7 +119,7 @@ and c_sexpr  expression =
 				| Sast.Litfunc(args, e) -> "c_litfunc args e "
 				| Sast.Litlist(el) -> c_list el 
 				| Sast.Litmatrix(ell) -> c_matrix ell 
-				| Sast.Id(name, depth) -> c_id name depth 
+				| Sast.Id(name, depth) -> c_id name depth ^ ".value()" 
 				| Sast.Binop(e1, bop, e2) -> c_binop e1 bop e2 
 				| Sast.Unop(uop, e) -> c_unop uop e 
 				| Sast.Call(name, el) -> c_scall name el 
@@ -153,7 +153,7 @@ and mdl_assign il e  =
 
 and c_vdecl name depth e  =
 	match e with Sast.Expr(_, typ) ->
-		"final Var<" ^ drop_Ast typ ^ "> " ^ depth_to_us depth ^ " = " ^ c_sexpr  e ^ ";\n"
+		"final Var<" ^ drop_Ast typ ^ "> " ^ depth_to_us depth ^ name ^ " = " ^ "new Var<" ^ drop_Ast typ ^ ">(" ^ c_sexpr  e ^ ");\n"
 
 and c_match_command topexpr matchcommand  =
 	let c_match_flow matchcommand =
@@ -199,4 +199,6 @@ let _ =
     let prog = Parser.program Scanner.token lexbuf in
 	let checked_prog = Ssc.check_program prog in
     let compiled_prog = c_prog checked_prog in
-    print_string (compiled_prog ^ "done\n")
+    let header = "import com.numlang;\n\npublic class Runner\n{\npublic static void main(String[] args)\n{\n" in
+    let footer = "}\n}\n" in
+    print_string (header ^ compiled_prog ^ footer)
