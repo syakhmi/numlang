@@ -2,6 +2,9 @@ open Ast
 open Sast
 open Ssc
 
+let head_list l =
+    List.rev (List.tl (List.rev l))
+
 (* Java Syntax example: (new FuncValue(no of parameters, new Func() )) *)
 let rec c_litfunc args e =
     let c_evalparams expr_list =
@@ -223,6 +226,14 @@ and c_match_command topexpr matchcommand  =
 and c_match smatch_statement  =
     "while(true){\n" ^ List.fold_left (fun a b  -> a ^ b) "" (List.map (fun x -> c_match_command smatch_statement.smatch_top_expr x ) smatch_statement.smatch_list) ^ "break;\n}\n"
 
+and c_sub name args stmtl =
+	let (decls, _) = List.fold_left (fun result el ->
+		(fst result ^ "final Var<" ^ drop_Ast el.vtype ^ "> _" ^ el.vname ^ " = " ^ "new Var<" ^ drop_Ast el.vtype ^ ">((" ^ drop_Ast el.vtype ^ ") args[" ^ string_of_int (snd result) ^ "] );\n", (snd result+1))
+	) ("", 0) args in
+	let stmts = List.fold_left (fun result el -> result ^ c_sstmt el) "" (head_list stmtl) in
+	let stmts = stmts ^ "return " ^ c_sstmt (List.nth stmtl ((List.length stmtl)-1)) in
+	"final " ^ name ^ " = new Subroutine() {\npublic Object run() {\n" ^ decls ^ stmts ^ "}\n}\n"
+
 and c_sstmt  sstmt = match sstmt with
 	Sast.Block(sl) -> c_block sl 
 	| Sast.Match(smatch_statement) -> c_match smatch_statement 
@@ -232,7 +243,7 @@ and c_sstmt  sstmt = match sstmt with
 	| Sast.Externassign(name, depth, il, e) -> c_assign name depth il e 
 	| Sast.Exprstmt(e) -> (c_sexpr  e) ^ ";\n"  (* do we need \\ here? *)
 	| Sast.Pass -> ""
-	| Sast.Subdecl(name, vars, stmtl) -> "c_sub name vars stmtl "
+	| Sast.Subdecl(name, vars, stmtl) -> c_sub name vars stmtl
 
 let c_prog sstmtl =
 	List.fold_left (fun result sstmt -> result ^ c_sstmt sstmt) "" 	sstmtl

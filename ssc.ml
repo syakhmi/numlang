@@ -17,6 +17,9 @@ type symbol_table = {
    depth : int
 }
 
+let head_list l =
+    List.rev (List.tl (List.rev l))
+
 let rec sublist b e l =
  match l with
    [] -> failwith "sublist"
@@ -631,7 +634,7 @@ and check_sub s vdcll stml env =
 				let converted_vdecl = (List.map convert_vdecl vdcll) in
 				let new_scope = new_symbol_table env.scope converted_vdecl in
 				let new_env = { env with scope = new_scope } in
-				let sl = List.map (fun s -> check_stmt new_env s) (sublist 0 ((List.length stml)-1) stml) in
+				let sl = List.map (fun s -> check_stmt new_env s) (head_list stml) in
 				let last = check_stmt new_env (List.nth stml ((List.length stml)-1)) in
 				match last with
 					Sast.Exprstmt(Sast.Expr(e, t)) ->
