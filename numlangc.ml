@@ -199,4 +199,4 @@ let _ =
     let prog = Parser.program Scanner.token lexbuf in
 	let checked_prog = Ssc.check_program prog in
     let compiled_prog = c_prog checked_prog in
-    print_string (compiled_prog ^ "done\n")
+    print_string compiled_prog
