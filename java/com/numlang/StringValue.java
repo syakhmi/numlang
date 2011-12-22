@@ -15,7 +15,7 @@ public class StringValue {
 		this.value = value.getValue().toString();
 	}
 
-	public StringValue(Func value)
+	public StringValue(FuncValue.Func value)
 	{
 		this.value = value.toString();
 	}

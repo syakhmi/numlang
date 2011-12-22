@@ -4,15 +4,13 @@ import java.math.*;
 import com.numlang.*;
 
 
-enum BinOp {	ADD, SUB, MULT, DIV, EXP, MOD,
-		EQ, NEQ, LT, LEQ, GT, GEQ};
-enum UnOp  {	UMINUS, NOT};
-
-
-
 public class FuncValue{
 	public int m_params;
 	public Func m_function;
+	
+	public static enum BinOp {	ADD, SUB, MULT, DIV, EXP, MOD,
+		EQ, NEQ, LT, LEQ, GT, GEQ};
+		enum UnOp  {	UMINUS, NOT};
 
 	public FuncValue()
 	{
@@ -115,285 +113,288 @@ public class FuncValue{
 	public FuncValue geq(NumValue other){ return new FuncValue(m_params, m_function.geq(other));}
 	public FuncValue neg(){return new FuncValue(m_params, m_function.neg());}
 	public FuncValue not(){return new FuncValue(m_params, m_function.not());}
-}
 
 
-class Func{
-	public  enum FuncType {	BINOP, UNOP, CONST, VAR};
+	public static class Func{
+		public static enum FuncType {	BINOP, UNOP, CONST, VAR};
 
-	public	int 		m_index;
-	public  NumValue 	m_value;
-	public  Func 		m_left;
-	public  Func	 	m_right;
-	public  BinOp		m_bop;
-	public  UnOp		m_uop;
-	public  FuncType 	m_type;
+		public	int 		m_index;
+		public  NumValue 	m_value;
+		public  Func 		m_left;
+		public  Func	 	m_right;
+		public  BinOp 		m_bop;
+		public  UnOp		m_uop;
+		public  FuncType 	m_type;
 
 
-	public Func(Func left, BinOp op, Func right)
-	{
-		m_type = FuncType.BINOP;
-		m_left = left;
-		m_right = right;
-		m_bop = op;
-	}
-	public Func(UnOp op, Func value)
-	{
-		m_type = FuncType.UNOP;
-		m_right = value;
-		m_uop = op;
-	}
-	public Func(int index)
-	{
-		m_type = FuncType.VAR;
-		m_index = index;
-	}
-	public Func(NumValue value)
-	{
-		m_type =  FuncType.CONST;
-		m_value = value;
-	}
-	public Func copy()
-	{
-		switch(m_type)
+		public Func(Func left, BinOp op, Func right)
 		{
-			case VAR:
-				return new Func(m_index);
-			case CONST:
-				return new Func(m_value);
-			case UNOP:
-				return new Func(m_uop, m_right);
-			case BINOP:
-				return new Func(m_left, m_bop, m_right);
-			default:
-				return null;
+			m_type = FuncType.BINOP;
+			m_left = left;
+			m_right = right;
+			m_bop = op;
+		}
+		public Func(UnOp op, Func value)
+		{
+			m_type = FuncType.UNOP;
+			m_right = value;
+			m_uop = op;
+		}
+		public Func(int index)
+		{
+			m_type = FuncType.VAR;
+			m_index = index;
+		}
+		public Func(NumValue value)
+		{
+			m_type =  FuncType.CONST;
+			m_value = value;
+		}
+		public Func copy()
+		{
+			switch(m_type)
+			{
+				case VAR:
+					return new Func(m_index);
+				case CONST:
+					return new Func(m_value);
+				case UNOP:
+					return new Func(m_uop, m_right);
+				case BINOP:
+					return new Func(m_left, m_bop, m_right);
+				default:
+					return null;
+			}
+		}
+
+
+		public NumValue evaluate(NumValue[] params)
+		{
+			switch(m_type)
+			{
+				case VAR:
+					return params[m_index];
+				case CONST:
+					return m_value;
+				case UNOP:
+					return this.unary(params);
+				case BINOP:
+					return this.binary(params);
+				default:
+					return null;
+			}
+		}
+
+		private NumValue unary(NumValue[] params)
+		{
+			switch(m_uop)
+			{
+				case UMINUS:
+					return m_right.evaluate(params).neg();
+				case NOT:
+					return m_right.evaluate(params).not();
+				default:
+					return null;
+			}
+		}
+
+		private NumValue binary(NumValue[] params)
+		{
+			switch(m_bop)
+			{
+				case ADD:
+					return m_left.evaluate(params).add(m_right.evaluate(params));
+				case SUB:
+					return m_left.evaluate(params).subtract(m_right.evaluate(params));
+				case MULT:
+					return m_left.evaluate(params).multiply(m_right.evaluate(params));
+				case DIV:
+					return m_left.evaluate(params).divide(m_right.evaluate(params));
+				case EXP:
+					return m_left.evaluate(params).exp(m_right.evaluate(params));
+				case MOD:
+					return m_left.evaluate(params).mod(m_right.evaluate(params));
+				case EQ:
+					return m_left.evaluate(params).eq(m_right.evaluate(params));
+				case NEQ:
+					return m_left.evaluate(params).neq(m_right.evaluate(params));
+				case LT:
+					return m_left.evaluate(params).lt(m_right.evaluate(params));
+				case LEQ:
+					return m_left.evaluate(params).leq(m_right.evaluate(params));
+				case GT:
+					return m_left.evaluate(params).gt(m_right.evaluate(params));
+				case GEQ:
+					return m_left.evaluate(params).geq(m_right.evaluate(params));
+				default:
+					return null;
+			}
+		}
+
+		public Func shift(int shift)
+		{
+			switch(m_type)
+			{
+				case VAR:
+				 	return new Func(m_index + shift);
+				case CONST:
+					return this;
+				case UNOP:
+					return new Func(m_uop, m_right.shift(shift));
+				case BINOP:
+					return new Func(m_left.shift(shift),
+							m_bop, m_right.shift(shift));
+				default: 	return null;
+			}
+		}
+
+		public Func nest(Func[] params)
+		{
+			switch(m_type)
+			{
+				case VAR:
+				 	return params[m_index].copy();
+				case CONST:
+					return this;
+				case UNOP:
+					return new Func(m_uop, m_right.nest(params));
+				case BINOP:
+					return new Func(m_left.nest(params),
+							m_bop, m_right.nest(params));
+				default: 	return null;
+			}
+		}
+
+		private String bopString()
+		{
+			switch(m_bop)
+			{
+				case ADD:	return "+";
+				case SUB:	return "-";
+				case MULT:	return "*";
+				case DIV:	return "/";
+				case EXP:	return "^";
+				case MOD:	return "%";
+				case EQ:	return "==";
+				case NEQ:	return "!=";
+				case LT:	return "<";
+				case LEQ:	return "<=";
+				case GT:	return ">";
+				case GEQ:	return ">=";
+				default:	return "";
+			}
+		}
+		public Func add(NumValue other){return new Func(this, BinOp.ADD, new Func(other));}
+		public Func subtract(NumValue other){return new Func(this, BinOp.SUB, new Func(other));}
+		public Func multiply(NumValue other){return new Func(this, BinOp.MULT, new Func(other));}
+		public Func divide(NumValue other){return new Func(this, BinOp.DIV, new Func(other));}
+		public Func exp(NumValue other){return new Func(this, BinOp.EXP, new Func(other));}
+		public Func mod(NumValue other){return new Func(this, BinOp.MOD, new Func(other));}
+		public Func eq(NumValue other){return new Func(this, BinOp.EQ, new Func(other));}
+		public Func neq(NumValue other){return new Func(this, BinOp.NEQ, new Func(other));}
+		public Func lt(NumValue other){return new Func(this, BinOp.LT, new Func(other));}
+		public Func leq(NumValue other){return new Func(this, BinOp.LEQ, new Func(other));}
+		public Func gt(NumValue other){return new Func(this, BinOp.GT, new Func(other));}
+		public Func geq(NumValue other){return new Func(this, BinOp.GEQ, new Func(other));}
+		public Func neg(){return new Func(UnOp.UMINUS, this);}
+		public Func not(){return new Func(UnOp.NOT, this);}
+
+		private String uopString()
+		{
+			switch(m_uop)
+			{
+				case UMINUS: 	return "-";
+				case NOT:	return "!";
+				default:	return "";
+			}
+		}
+
+		public String toString()
+		{
+			switch(m_type)
+			{
+				case VAR: 	return "in[" + m_index + "]";
+				case CONST:	return m_value.toString();
+				case UNOP: 	return uopString() + "(" + m_right.toString() + ")";
+				case BINOP:	return 	"(" + m_left.toString() + " " + bopString() +
+							" " + m_right.toString() + ")";
+				default: 	return "";
+			}
+		}
+	}
+
+	public static class SpecialFunc extends Func
+	{
+		public enum SpecialType {SIN, COS, LN, LOG, CEIL, FLOOR};
+
+		public Func		 m_func;
+		public SpecialType	 m_utype;
+
+		public SpecialFunc(SpecialType type, Func input)
+		{
+			super(new NumValue(new BigRational(0)));
+			m_func = input;
+			m_utype = type;
+		}
+
+		public SpecialFunc copy()
+		{
+			return new SpecialFunc(m_utype, m_func.copy());
+		}
+
+		public NumValue evaluate(NumValue[] params)
+		{
+			switch(m_utype)
+			{
+				case SIN:
+					return NumLang.Func.sin(m_func.evaluate(params));
+				case COS:
+					return NumLang.Func.cos(m_func.evaluate(params));
+				case LN:
+					return NumLang.Func.ln(m_func.evaluate(params));
+				case LOG:
+					return NumLang.Func.log(m_func.evaluate(params));
+				case CEIL:
+					return NumLang.Func.ceil(m_func.evaluate(params));
+				case FLOOR:
+					return NumLang.Func.floor(m_func.evaluate(params));
+				default:
+					return null;
+			}
+		}
+		public SpecialFunc shift(int shift)
+		{
+			return new SpecialFunc(m_utype, m_func.shift(shift));
+		}
+		public SpecialFunc nest(Func[] params)
+		{
+			return new SpecialFunc(m_utype, m_func.nest(params));
+		}
+
+		public String toString()
+		{
+			switch(m_utype)
+			{
+				case SIN:
+					return "sin(" + m_func.toString() + ")";
+				case COS:
+					return "cos(" + m_func.toString() + ")";
+				case LN:
+					return "ln(" + m_func.toString() + ")";
+				case LOG:
+					return "log(" + m_func.toString() + ")";
+				case CEIL:
+					return "ceil(" + m_func.toString() + ")";
+				case FLOOR:
+					return "floor(" + m_func.toString() + ")";
+				default:
+					return null;
+			}
 		}
 	}
 
 
-	public NumValue evaluate(NumValue[] params)
-	{
-		switch(m_type)
-		{
-			case VAR:
-				return params[m_index];
-			case CONST:
-				return m_value;
-			case UNOP:
-				return this.unary(params);
-			case BINOP:
-				return this.binary(params);
-			default:
-				return null;
-		}
-	}
 
-	private NumValue unary(NumValue[] params)
-	{
-		switch(m_uop)
-		{
-			case UMINUS:
-				return m_right.evaluate(params).neg();
-			case NOT:
-				return m_right.evaluate(params).not();
-			default:
-				return null;
-		}
-	}
-
-	private NumValue binary(NumValue[] params)
-	{
-		switch(m_bop)
-		{
-			case ADD:
-				return m_left.evaluate(params).add(m_right.evaluate(params));
-			case SUB:
-				return m_left.evaluate(params).subtract(m_right.evaluate(params));
-			case MULT:
-				return m_left.evaluate(params).multiply(m_right.evaluate(params));
-			case DIV:
-				return m_left.evaluate(params).divide(m_right.evaluate(params));
-			case EXP:
-				return m_left.evaluate(params).exp(m_right.evaluate(params));
-			case MOD:
-				return m_left.evaluate(params).mod(m_right.evaluate(params));
-			case EQ:
-				return m_left.evaluate(params).eq(m_right.evaluate(params));
-			case NEQ:
-				return m_left.evaluate(params).neq(m_right.evaluate(params));
-			case LT:
-				return m_left.evaluate(params).lt(m_right.evaluate(params));
-			case LEQ:
-				return m_left.evaluate(params).leq(m_right.evaluate(params));
-			case GT:
-				return m_left.evaluate(params).gt(m_right.evaluate(params));
-			case GEQ:
-				return m_left.evaluate(params).geq(m_right.evaluate(params));
-			default:
-				return null;
-		}
-	}
-
-	public Func shift(int shift)
-	{
-		switch(m_type)
-		{
-			case VAR:
-			 	return new Func(m_index + shift);
-			case CONST:
-				return this;
-			case UNOP:
-				return new Func(m_uop, m_right.shift(shift));
-			case BINOP:
-				return new Func(m_left.shift(shift),
-						m_bop, m_right.shift(shift));
-			default: 	return null;
-		}
-	}
-
-	public Func nest(Func[] params)
-	{
-		switch(m_type)
-		{
-			case VAR:
-			 	return params[m_index].copy();
-			case CONST:
-				return this;
-			case UNOP:
-				return new Func(m_uop, m_right.nest(params));
-			case BINOP:
-				return new Func(m_left.nest(params),
-						m_bop, m_right.nest(params));
-			default: 	return null;
-		}
-	}
-
-	private String bopString()
-	{
-		switch(m_bop)
-		{
-			case ADD:	return "+";
-			case SUB:	return "-";
-			case MULT:	return "*";
-			case DIV:	return "/";
-			case EXP:	return "^";
-			case MOD:	return "%";
-			case EQ:	return "==";
-			case NEQ:	return "!=";
-			case LT:	return "<";
-			case LEQ:	return "<=";
-			case GT:	return ">";
-			case GEQ:	return ">=";
-			default:	return "";
-		}
-	}
-	public Func add(NumValue other){return new Func(this, BinOp.ADD, new Func(other));}
-	public Func subtract(NumValue other){return new Func(this, BinOp.SUB, new Func(other));}
-	public Func multiply(NumValue other){return new Func(this, BinOp.MULT, new Func(other));}
-	public Func divide(NumValue other){return new Func(this, BinOp.DIV, new Func(other));}
-	public Func exp(NumValue other){return new Func(this, BinOp.EXP, new Func(other));}
-	public Func mod(NumValue other){return new Func(this, BinOp.MOD, new Func(other));}
-	public Func eq(NumValue other){return new Func(this, BinOp.EQ, new Func(other));}
-	public Func neq(NumValue other){return new Func(this, BinOp.NEQ, new Func(other));}
-	public Func lt(NumValue other){return new Func(this, BinOp.LT, new Func(other));}
-	public Func leq(NumValue other){return new Func(this, BinOp.LEQ, new Func(other));}
-	public Func gt(NumValue other){return new Func(this, BinOp.GT, new Func(other));}
-	public Func geq(NumValue other){return new Func(this, BinOp.GEQ, new Func(other));}
-	public Func neg(){return new Func(UnOp.UMINUS, this);}
-	public Func not(){return new Func(UnOp.NOT, this);}
-
-	private String uopString()
-	{
-		switch(m_uop)
-		{
-			case UMINUS: 	return "-";
-			case NOT:	return "!";
-			default:	return "";
-		}
-	}
-
-	public String toString()
-	{
-		switch(m_type)
-		{
-			case VAR: 	return "in[" + m_index + "]";
-			case CONST:	return m_value.toString();
-			case UNOP: 	return uopString() + "(" + m_right.toString() + ")";
-			case BINOP:	return 	"(" + m_left.toString() + " " + bopString() +
-						" " + m_right.toString() + ")";
-			default: 	return "";
-		}
-	}
-}
-
-class SpecialFunc extends Func
-{
-	public enum SpecialType {SIN, COS, LN, LOG, CEIL, FLOOR};
-
-	public Func		 m_func;
-	public SpecialType	 m_utype;
-
-	public SpecialFunc(SpecialType type, Func input)
-	{
-		super(new NumValue(new BigRational(0)));
-		m_func = input;
-		m_utype = type;
-	}
-
-	public SpecialFunc copy()
-	{
-		return new SpecialFunc(m_utype, m_func.copy());
-	}
-
-	public NumValue evaluate(NumValue[] params)
-	{
-		switch(m_utype)
-		{
-			case SIN:
-				return NumLang.Func.sin(m_func.evaluate(params));
-			case COS:
-				return NumLang.Func.cos(m_func.evaluate(params));
-			case LN:
-				return NumLang.Func.ln(m_func.evaluate(params));
-			case LOG:
-				return NumLang.Func.log(m_func.evaluate(params));
-			case CEIL:
-				return NumLang.Func.ceil(m_func.evaluate(params));
-			case FLOOR:
-				return NumLang.Func.floor(m_func.evaluate(params));
-			default:
-				return null;
-		}
-	}
-	public SpecialFunc shift(int shift)
-	{
-		return new SpecialFunc(m_utype, m_func.shift(shift));
-	}
-	public SpecialFunc nest(Func[] params)
-	{
-		return new SpecialFunc(m_utype, m_func.nest(params));
-	}
-
-	public String toString()
-	{
-		switch(m_utype)
-		{
-			case SIN:
-				return "sin(" + m_func.toString() + ")";
-			case COS:
-				return "cos(" + m_func.toString() + ")";
-			case LN:
-				return "ln(" + m_func.toString() + ")";
-			case LOG:
-				return "log(" + m_func.toString() + ")";
-			case CEIL:
-				return "ceil(" + m_func.toString() + ")";
-			case FLOOR:
-				return "floor(" + m_func.toString() + ")";
-			default:
-				return null;
-		}
-	}
 }
 
 

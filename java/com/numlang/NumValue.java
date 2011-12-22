@@ -97,52 +97,52 @@ public class NumValue {
 
 	/*Func Operations*/
 	public FuncValue add(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.ADD);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.ADD);
 	}
 	public FuncValue subtract(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.SUB);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.SUB);
 	}
 	public FuncValue multiply(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.MULT);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.MULT);
 	}
 	public FuncValue divide(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.DIV);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.DIV);
 	}
 	public FuncValue exp(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.EXP);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.EXP);
 	}
 	public FuncValue mod(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.MOD);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.MOD);
 	}
 	public FuncValue eq(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.EQ);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.EQ);
 	}
 	public FuncValue neq(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.NEQ);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.NEQ);
 	}
 	public FuncValue lt(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.LT);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.LT);
 	}
 	public FuncValue leq(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.LEQ);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.LEQ);
 	}
 	public FuncValue gt(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.GT);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.GT);
 	}
 	public FuncValue geq(FuncValue other){
-		FuncValue temp = new FuncValue(0, new Func(this));
-		return other.bin_front(temp, BinOp.GEQ);
+		FuncValue temp = new FuncValue(0, new FuncValue.Func(this));
+		return other.bin_front(temp, FuncValue.BinOp.GEQ);
 	}
 
 
