@@ -105,20 +105,26 @@ and drop_Ast = function
 	| Ast.List(typ) -> "ListValue<" ^ drop_Ast typ ^ ">"
 	| _ -> ""
 
-and c_list el  =
-	match el with hd::tl ->
-		(match hd with Sast.Expr(_, vtype) ->
-			"(new ListValue<" ^ drop_Ast vtype ^ ">({" ^ c_sexpr  hd
-			^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr  e) "" tl ^ "})")
-	| _ -> ""
+and c_list el =
+	let vtype = match List.hd el with Sast.Expr(_, vtype) -> vtype
+	and el = List.map (fun e -> c_sexpr e) el in
+	"(new ListValue<" ^ drop_Ast vtype ^ ">({" ^ String.concat "," el ^ "})"
 
-and c_matrix ell  =
-	match ell with
-		hdl::tll ->	"(new MatrixValue(new NumValue[][]{{" ^
-			(match hdl with
-				hd::tl -> c_sexpr  hd ^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr  e) "" tl ^ "}" | _ -> "") ^ List.fold_left (fun rl el ->
-					(match el with
-						hd::tl -> rl ^ ", {" ^ c_sexpr hd ^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr  e) "" tl ^ "}" | _ -> "")) "" tll ^ "}))"
+and c_matrix ell =
+	let cell = List.map (fun el -> List.map (fun e -> c_sexpr e) el) ell in
+	let cel = List.map (fun el -> "{" ^ String.concat "," el ^ "}") cell in
+	"(new MatrixValue(new NumValue[][]{" ^ String.concat "," cel ^ "})"
+
+and c_listaccess s depth il =
+	let cil = List.map (fun x -> c_sexpr  x) il in
+		match cil with
+			[] -> depth_to_us depth ^ s ^ ";\n"
+			| hd::[] -> depth_to_us depth ^ s ^ ".get(" ^ hd ^ ");\n"
+			| hd::tl ->  depth_to_us depth ^ s ^ c_mdlaccess cil
+
+and c_mdlaccess cil  =
+	match cil with
+		hd::tl -> ".get(" ^ hd ^ ")" ^ c_mdlaccess tl
 		| _ -> ""
 
 and depth_to_us depth =
@@ -127,18 +133,41 @@ and depth_to_us depth =
 and c_id name depth  =
 	depth_to_us depth ^ name
 
-and c_scall name el  =
-	match el with
-		hd::tl ->
-			name ^ ".invoke(" ^ c_sexpr  hd ^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr  e) "" tl ^ ")"
-		| _ -> ""
+and c_scall name el typ  =
+	let c_args el = 
+		match el with
+			hd::tl ->
+				c_sexpr hd ^ List.fold_left (fun r e -> r ^ ", " ^ c_sexpr e) "" tl
+			| _ -> ""
+	in
+	match name with
+		"print" ->
+			"System.out.print(" ^ c_args el ^ ")"
+		| "println" ->
+				"System.out.println(" ^ c_args el ^ ")"
+		| "pop" ->
+				c_args el ^ ".pop()"
+		| "rm" ->
+			c_args el ^ ".remove()"
+		| "rmi" ->
+			c_sexpr (List.hd el) ^ ".remove(" ^ c_sexpr (List.hd (List.tl el)) ^ ")"			
+		| "str" ->
+			c_args el ^ ".toString()"
+		| "num" ->
+			c_args el ^ ".toNum()"
+		| "scanln" ->
+			"Numlang.IO.scanln()"
+		| "m" ->
+			"(new MatrixValue(" ^ c_args el ^ "))"
+		| _ ->
+			"((" ^ drop_Ast typ ^ ")" ^ name ^ ".invoke(" ^ c_args el ^ "))"
 
 and c_fcall name depth el  =
     "func.evaluate"
 
 and c_sfexpr  expression =
 	match expression with
-		Sast.Expr(ex, _) ->
+		Sast.Expr(ex, typ) ->
 			match ex with
 				Sast.Litnum(s) -> c_litnum s 
 				| Sast.Litstring(s) -> "(new StringValue(\"" ^ s ^ "\"))"
@@ -148,14 +177,14 @@ and c_sfexpr  expression =
 				| Sast.Id(name, depth) -> c_id name depth 
 				| Sast.Binop(e1, bop, e2) -> c_binop e1 bop e2 
 				| Sast.Unop(uop, e) -> c_unop uop e 
-				| Sast.Call(name, el) -> c_scall name el 
+				| Sast.Call(name, el) -> c_scall name el typ
 				| Sast.FCall(name, depth, el) -> c_fcall name depth el 
 				| Sast.Funarg(i) -> ""
 				| _ -> ""
 
 and c_sexpr  expression =
 	match expression with
-		Sast.Expr(ex, _) ->
+		Sast.Expr(ex, typ) ->
 			match ex with
 				Sast.Litnum(s) -> c_litnum s 
 				| Sast.Litstring(s) -> "(new StringValue(\"" ^ s ^ "\"))"
@@ -165,11 +194,11 @@ and c_sexpr  expression =
 				| Sast.Id(name, depth) -> c_id name depth ^ ".value()" 
 				| Sast.Binop(e1, bop, e2) -> c_binop e1 bop e2 
 				| Sast.Unop(uop, e) -> c_unop uop e 
-				| Sast.Call(name, el) -> c_scall name el 
+				| Sast.Call(name, el) -> c_scall name el typ
 				| Sast.FCall(name, depth, el) -> c_fcall name depth el 
 				| Sast.Funarg(i) -> ""
-				| Sast.Listaccess(s, el) -> ""
-				| Sast.Mataccess(s, el) -> ""
+				| Sast.Listaccess(s, depth, el) -> c_listaccess s depth el
+				| Sast.Mataccess(s, depth, el) -> c_listaccess s depth el
 				| _ -> ""
 
 and c_block sl  =
@@ -223,6 +252,14 @@ and c_match_command topexpr matchcommand  =
 and c_match smatch_statement  =
     "while(true){\n" ^ List.fold_left (fun a b  -> a ^ b) "" (List.map (fun x -> c_match_command smatch_statement.smatch_top_expr x ) smatch_statement.smatch_list) ^ "break;\n}\n"
 
+and c_sub name args stmtl =
+	let (decls, _) = List.fold_left (fun result el ->
+		(fst result ^ "final Var<" ^ drop_Ast el.vtype ^ "> _" ^ el.vname ^ " = " ^ "new Var<" ^ drop_Ast el.vtype ^ ">((" ^ drop_Ast el.vtype ^ ") args[" ^ string_of_int (snd result) ^ "] );\n", (snd result+1))
+	) ("", 0) args in
+	let stmts = List.fold_left (fun result el -> result ^ c_sstmt el) "" (head_list stmtl) in
+	let stmts = stmts ^ "return " ^ c_sstmt (List.nth stmtl ((List.length stmtl)-1)) in
+	"final " ^ name ^ " = new Subroutine() {\npublic Object run() {\n" ^ decls ^ stmts ^ "}\n}\n"
+
 and c_sstmt  sstmt = match sstmt with
 	Sast.Block(sl) -> c_block sl 
 	| Sast.Match(smatch_statement) -> c_match smatch_statement 
@@ -232,7 +269,7 @@ and c_sstmt  sstmt = match sstmt with
 	| Sast.Externassign(name, depth, il, e) -> c_assign name depth il e 
 	| Sast.Exprstmt(e) -> (c_sexpr  e) ^ ";\n"  (* do we need \\ here? *)
 	| Sast.Pass -> ""
-	| Sast.Subdecl(name, vars, stmtl) -> "c_sub name vars stmtl "
+	| Sast.Subdecl(name, vars, stmtl) -> c_sub name vars stmtl
 
 let c_prog sstmtl =
 	List.fold_left (fun result sstmt -> result ^ c_sstmt sstmt) "" 	sstmtl

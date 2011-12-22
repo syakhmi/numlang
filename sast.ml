@@ -9,8 +9,8 @@ and sexpr =
    | Litfunc of string list * expr_wrapper
    | Litlist of expr_wrapper list
    | Litmatrix of expr_wrapper list list
-   | Mataccess of string * expr_wrapper list
-   | Listaccess of string * expr_wrapper list
+   | Mataccess of string * int * expr_wrapper list
+   | Listaccess of string * int * expr_wrapper list
    | Id of string * int
    | Ref of expr_wrapper * expr_wrapper
    | Slice of expr_wrapper * expr_wrapper * expr_wrapper
