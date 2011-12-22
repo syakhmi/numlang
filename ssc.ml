@@ -476,12 +476,36 @@ and check_assign name l e env =
 			raise (Error("Variable " ^ name ^ " is const!"))
 		else
 			let se = check_expr env e in
-			match se with
-				Sast.Expr(_, typ) ->
-					if typ=vdecl.var_type then
-						let sl = List.map (fun x -> check_expr env x) l in
+			match se with Sast.Expr(_, etyp) ->
+				let typ = vdecl.var_type in
+				let sl = List.map (fun x -> check_expr env x) l in
+				if (List.length sl) = 0 then
+					if etyp=vdecl.var_type then
 						Sast.Assign(name, depth, sl, se)
 					else raise (Error("Cannot reassign " ^ name ^ " a new type!"))
+				else
+					(match List.hd sl with Sast.Expr(_, vartype) ->
+						let nums = List.fold_left (fun valid e -> match e with
+							Sast.Expr(_, vtype) -> if vartype <> vtype then 0*valid else 1*valid) 1 sl in
+						let length = List.length sl in
+						(match typ with
+							
+							Ast.Matrix ->
+								if length <> 2 || nums <> 1 then
+									raise (Error("Invalid Matrix element assignment!"))
+								else
+									if etyp=Ast.Num then
+										Sast.Assign(name, depth, sl, se)
+									else raise (Error("Cannot reassign " ^ name ^ " a new type!"))
+							| Ast.List(typ) ->
+								if length > (1 + (num_nested_lists typ)) || nums <> 1 then
+									raise (Error("Invalid List element assignment!"))
+								else
+									let typ = list_access_type typ (length - 1) in
+									if etyp=typ then
+										Sast.Assign(name, depth, sl, se)
+									else raise (Error("Cannot reassign " ^ name ^ " a new type!"))
+							| _ -> raise (Error("Invalid element assignment!"))))
 	with Not_found ->
 		let se = check_expr env e in
 		match se with
@@ -520,15 +544,42 @@ and check_cassign name e env =
 and check_eassign name l e env =
 	try
 		let (vdecl, depth) = find_nonlocal_variable env.scope name in
-		let se = check_expr env e in
-		match se with
-			Sast.Expr(_, typ) ->
-				if typ=vdecl.var_type then
-	    			let sl = List.map (fun x -> check_expr env x) l in
-			    	Sast.Assign(name, depth, sl, se)
-				else raise (Error("Cannot extern assign " ^ name ^ " with a new type!"))
+		if vdecl.const = true then
+			raise (Error("Extern variable " ^ name ^ " is const!"))
+		else
+			let se = check_expr env e in
+			match se with Sast.Expr(_, etyp) ->
+				let typ = vdecl.var_type in
+				let sl = List.map (fun x -> check_expr env x) l in
+				if (List.length sl) = 0 then
+					if etyp=vdecl.var_type then
+						Sast.Assign(name, depth, sl, se)
+					else raise (Error("Cannot extern reassign " ^ name ^ " a new type!"))
+				else
+					(match List.hd sl with Sast.Expr(_, vartype) ->
+						let nums = List.fold_left (fun valid e -> match e with
+							Sast.Expr(_, vtype) -> if vartype <> vtype then 0*valid else 1*valid) 1 sl in
+						let length = List.length sl in
+						(match typ with
+
+							Ast.Matrix ->
+								if length <> 2 || nums <> 1 then
+									raise (Error("Invalid extern Matrix element assignment!"))
+								else
+									if etyp=Ast.Num then
+										Sast.Assign(name, depth, sl, se)
+									else raise (Error("Cannot extern reassign " ^ name ^ " a new type!"))
+							| Ast.List(typ) ->
+								if length > (1 + (num_nested_lists typ)) || nums <> 1 then
+									raise (Error("Invalid extern List element assignment!"))
+								else
+									let typ = list_access_type typ (length - 1) in
+									if etyp=typ then
+										Sast.Assign(name, depth, sl, se)
+									else raise (Error("Cannot extern reassign " ^ name ^ " a new type!"))
+							| _ -> raise (Error("Invalid extern element assignment!"))))
 	with Not_found ->
-    	raise (Error("External variable " ^ name ^ " has not been declared!"))
+		raise (Error("External variable " ^ name ^ " has not been declared!"))
        
 and check_block l env =
     let new_scope = new_symbol_table env.scope [] in

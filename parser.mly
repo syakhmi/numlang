@@ -109,18 +109,13 @@ match_cmp:
 	| GT				{ Mgt }
 	| GEQ				{ Mgeq }
 
-/* Rules for assignment statements */
-assign_lval:
-	  ID				{ ($1, []) }
-	| assign_lval LBRACKET expr RBRACKET
-					{ (fst $1, $3 :: snd $1) }
 assign_stmt:
-	  assign_lval ASSIGN expr SEMI	{ Assign(fst $1,
-						 List.rev (snd $1), $3) }
+	  ID list_access_opt ASSIGN expr SEMI	{ Assign($1,
+						 $2, $4) }
 	| CONST ID ASSIGN expr SEMI	
 					{ Constassign($2, $4) }
-	| EXTERN assign_lval ASSIGN expr SEMI	{ Externassign(fst $2,
-							 List.rev (snd $2), $4) }
+	| EXTERN ID list_access_opt ASSIGN expr SEMI	{ Externassign($2,
+							 $3, $5) }
 
 /* Rules for an expression*/
 expr :
@@ -156,6 +151,10 @@ expr :
 	| ID list_access			{ Access($1, $2) }
 	| LBRACKET list_expr_list_opt RBRACKET	{ Litlist(List.rev $2)}
 	| MATRIX matrix_rows_list RBRACKET	{ Litmatrix(List.rev $2) }
+
+list_access_opt:
+	/* nothing */					{ [] }
+	| list_access					{ $1 }
 
 list_access:
 	LBRACKET expr RBRACKET					{ [$2] }
