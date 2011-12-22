@@ -183,7 +183,7 @@ and c_assign name depth il e  =
 	match cil with
 		[] -> depth_to_us depth ^ name ^ ".assign(" ^ c_sexpr  e ^ ");\n"
 		| hd::[] -> depth_to_us depth ^ name ^ ".set(" ^ hd ^ ", " ^ c_sexpr  e ^ ");\n"
-		| hd::tl ->  depth_to_us depth ^ name ^ mdl_assign cil e 
+		| hd::tl ->  depth_to_us depth ^ name ^ mdl_assign cil e
 
 and mdl_assign il e  =
 	match il with
@@ -196,7 +196,7 @@ and mdl_assign il e  =
 
 and c_vdecl name depth e  =
 	match e with Sast.Expr(_, typ) ->
-		"final Var<" ^ drop_Ast typ ^ "> " ^ depth_to_us depth ^ " = " ^ c_sexpr  e ^ ";\n"
+		"final Var<" ^ drop_Ast typ ^ "> " ^ depth_to_us depth ^ " = " ^ "new Var<" ^ drop_Ast typ ^ ">" ^ c_sexpr e ^ ";\n"
 
 and c_match_command topexpr matchcommand  =
 	let c_match_flow matchcommand =
