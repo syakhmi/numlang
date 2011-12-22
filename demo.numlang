@@ -1,0 +1,27 @@
+y = [[0, 0, 0], [0, 3, 5]];
+new_y = y[1];
+new_y2 = y[1][1];
+pop<<y>>;
+y[1][1] = 4;
+sub callMe(num x, string list y) {
+	y[1];
+}
+sub call2() {
+	34;
+}
+str2 = "hello";
+println<<"str2">>;
+strList = ["hello", "str"];
+rm<<strList>>;
+str2 = callMe<<4, strList>>;
+w = call2<<>>;
+w = 43;
+x = "hello";
+print<<x>>;
+match(w)
+{
+	cont: w - (w % 10) ? {x = 1;}
+	loop: > 22 ? {x =  - 1;}
+	<= 12 % 4 ? pass;
+	done: true ? pass;
+}
