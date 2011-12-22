@@ -17,7 +17,7 @@ and sexpr =
    | Binop of expr_wrapper * bop * expr_wrapper
    | Unop of Ast.uop * expr_wrapper
    | Call of string * expr_wrapper list
-   | FCall of string * expr_wrapper list
+   | FCall of string * int * expr_wrapper list
    | Funarg of int
 
 and sstmt =

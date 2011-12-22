@@ -15,6 +15,8 @@ SOURCE= $(SRCDIR)/BigRational.java\
 	$(SRCDIR)/ListValue.java\
 	$(SRCDIR)/MatrixValue.java\
 	$(SRCDIR)/StringValue.java\
+	$(SRCDIR)/Subroutine.java\
+	$(SRCDIR)/Var.java\
 	$(SRCDIR)/testmain.java
 
 default: $(SOURCE)

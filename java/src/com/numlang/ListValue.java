@@ -115,7 +115,7 @@ public class ListValue<T>
 
 	public T[] convToArray()
 	{
-		if(m_list.size() <= 0)
+		/*if(m_list.siddze() <= 0)
 			return null;
 		T[] x = new T[m_list.size()];
 		Iterator<T> iter = m_list.iterator();
@@ -124,7 +124,8 @@ public class ListValue<T>
 		{
 			x[i] = iter.next();
 		}
-		return x;
+		return x;*/
+		return (T[])m_list.toArray();
 	}
 
 	private int c_index(NumValue index)

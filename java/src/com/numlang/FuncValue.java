@@ -29,18 +29,23 @@ public class FuncValue{
 	{
 		return m_function.evaluate(paramlist);
 	}
+	public Func evaluate(Func[] paramList)
+	{
+		return m_function.nest(paramList);
+	}
+
 
 	public FuncValue bin_front(FuncValue other, BinOp op)
 	{
 		int tparams = other.m_params + this.m_params;
-		Func lfunc = other.m_function.copy();
+		Func lfunc = other.m_function;
 		Func rfunc = this.m_function.shift(other.m_params);
 		return new FuncValue(tparams, new Func(lfunc, op, rfunc));
 	}
 	public FuncValue bin_back(BinOp op, FuncValue other)
 	{
 		int tparams = this.m_params + other.m_params;
-		Func lfunc = this.m_function.copy();
+		Func lfunc = this.m_function;
 		Func rfunc = other.m_function.shift(this.m_params);
 		return new FuncValue(tparams, new Func(lfunc, op, rfunc));
 	}
@@ -50,7 +55,7 @@ public class FuncValue{
 		return new FuncValue(	this.m_params, 
 					new Func(op, this.m_function.copy()));
 	}
-
+/*
 	public FuncValue nest(FuncValue[] inputs)
 	{
 		Func[] funcs  = new Func[inputs.length];
@@ -68,7 +73,7 @@ public class FuncValue{
 		return new FuncValue(shift, m_function.nest(funcs));
 		
 	}
-
+*/
 	public String toString()
 	{
 		String output = "|in[0]";
@@ -82,6 +87,19 @@ public class FuncValue{
 	{
 		return other.concatFront(this);
 	}
+
+	public FuncValue add(FuncValue other){ return bin_back(BinOp.ADD, other);}
+	public FuncValue subtract(FuncValue other){ return bin_back(BinOp.MULT, other);}
+	public FuncValue multiply(FuncValue other){ return bin_back(BinOp.MULT, other);}
+	public FuncValue divide(FuncValue other){ return bin_back(BinOp.DIV, other);}
+	public FuncValue exp(FuncValue other){ return bin_back(BinOp.EXP, other);}
+	public FuncValue mod(FuncValue other){ return bin_back(BinOp.MOD, other);}
+	public FuncValue eq(FuncValue other){ return bin_back(BinOp.EQ, other);}
+	public FuncValue neq(FuncValue other){ return bin_back(BinOp.NEQ, other);}
+	public FuncValue lt(FuncValue other){ return bin_back(BinOp.LT, other);}
+	public FuncValue leq(FuncValue other){ return bin_back(BinOp.LEQ, other);}
+	public FuncValue gt(FuncValue other){ return bin_back(BinOp.GT, other);}
+	public FuncValue geq(FuncValue other){ return bin_back(BinOp.GEQ, other);}
 
 	public FuncValue add(NumValue other){ return new FuncValue(m_params, m_function.add(other));}
 	public FuncValue subtract(NumValue other){ return new FuncValue(m_params, m_function.subtract(other));}
@@ -223,7 +241,7 @@ class Func{
 			case VAR:
 			 	return new Func(m_index + shift);
 			case CONST:
-				return this.copy();
+				return this;
 			case UNOP:
 				return new Func(m_uop, m_right.shift(shift));
 			case BINOP:
@@ -240,7 +258,7 @@ class Func{
 			case VAR:
 			 	return params[m_index].copy();
 			case CONST:
-				return this.copy();
+				return this;
 			case UNOP:
 				return new Func(m_uop, m_right.nest(params));
 			case BINOP:
