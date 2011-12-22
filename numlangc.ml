@@ -258,7 +258,7 @@ and c_sub name args stmtl =
 	) ("", 0) args in
 	let stmts = List.fold_left (fun result el -> result ^ c_sstmt el) "" (head_list stmtl) in
 	let stmts = stmts ^ "return " ^ c_sstmt (List.nth stmtl ((List.length stmtl)-1)) in
-	"final " ^ name ^ " = new Subroutine() {\npublic Object run() {\n" ^ decls ^ stmts ^ "}\n}\n"
+	"final Subroutine " ^ name ^ " = new Subroutine() {\npublic Object invoke(Object... args) {\n" ^ decls ^ stmts ^ "}\n};\n"
 
 and c_sstmt  sstmt = match sstmt with
 	Sast.Block(sl) -> c_block sl 
