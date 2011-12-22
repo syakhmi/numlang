@@ -14,6 +14,10 @@ public class StringValue {
 	{
 		this.value = value.getValue().toString();
 	}
+	public StringValue(StringValue other)
+	{
+		this.value = other.value;
+	}
 
 	public StringValue(FuncValue.Func value)
 	{
