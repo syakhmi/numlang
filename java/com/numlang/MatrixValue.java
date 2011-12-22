@@ -14,11 +14,15 @@ public class MatrixValue
 		m_cols = elements[0].length;
 		m_elements = elements;
 	}
-	public MatrixValue(int rows, int cols)
+	public MatrixValue(NumValue rows, NumValue cols)
 	{
-		m_rows = rows;
-		m_cols = cols;
-		m_elements = new NumValue[rows][cols];
+		m_rows = rows.getValue().intValue();
+		m_cols = cols.getValue().intValue();
+		if(m_rows <= 0 || m_cols <= 0)
+
+			NumLang.Exception.InvalidMatrixIndex(0);
+
+		m_elements = new NumValue[m_rows][m_cols];
 		for(int i = 0; i < m_rows; i++)
 			for(int j = 0; j < m_cols; j++)
 				m_elements[i][j] = new NumValue(new BigRational(0));
