@@ -105,10 +105,18 @@ and drop_Ast = function
 	| Ast.List(typ) -> "ListValue<" ^ drop_Ast typ ^ ">"
 	| _ -> ""
 
+and drop_Ast_not_rec = function
+	Ast.Num -> "NumValue"
+	| Ast.String -> "StringValue"
+	| Ast.Func -> "FuncValue"
+	| Ast.Matrix -> "MatrixValue"
+	| Ast.List(typ) -> "ListValue"
+	| _ -> ""
+
 and c_list el =
 	let vtype = match List.hd el with Sast.Expr(_, vtype) -> vtype
 	and el = List.map (fun e -> c_sexpr e) el in
-	"(new ListValue<" ^ drop_Ast vtype ^ ">(new "^ drop_Ast vtype ^ "[] {" ^ String.concat "," el ^ "}))"
+	"(new ListValue<" ^ drop_Ast vtype ^ ">(new "^ drop_Ast_not_rec vtype ^ "[] {" ^ String.concat "," el ^ "}))"
 
 and c_matrix ell =
 	let cell = List.map (fun el -> List.map (fun e -> c_sexpr e) el) ell in
@@ -142,9 +150,9 @@ and c_scall name el typ  =
 	in
 	match name with
 		"print" ->
-			"System.out.print(" ^ c_args el ^ ")"
+			"NumLang.IO.print(" ^ c_args el ^ ")"
 		| "println" ->
-				"System.out.println(" ^ c_args el ^ ")"
+				"NumLang.IO.println(" ^ c_args el ^ ")"
 		| "pop" ->
 				c_args el ^ ".pop()"
 		| "rm" ->
@@ -156,7 +164,7 @@ and c_scall name el typ  =
 		| "num" ->
 			c_args el ^ ".toNum()"
 		| "scanln" ->
-			"Numlang.IO.scanln()"
+			"NumLang.IO.scanln()"
 		| "m" ->
 			"(new MatrixValue(" ^ c_args el ^ "))"
 		| _ ->
