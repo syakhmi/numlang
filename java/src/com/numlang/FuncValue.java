@@ -83,6 +83,20 @@ public class FuncValue{
 		return other.concatFront(this);
 	}
 
+	public FuncValue add(NumValue other){ return new FuncValue(m_params, m_function.add(other));}
+	public FuncValue subtract(NumValue other){ return new FuncValue(m_params, m_function.subtract(other));}
+	public FuncValue multiply(NumValue other){ return new FuncValue(m_params, m_function.multiply(other));}
+	public FuncValue divide(NumValue other){ return new FuncValue(m_params, m_function.divide(other));}
+	public FuncValue exp(NumValue other){ return new FuncValue(m_params, m_function.exp(other));}
+	public FuncValue mod(NumValue other){ return new FuncValue(m_params, m_function.mod(other));}
+	public FuncValue eq(NumValue other){ return new FuncValue(m_params, m_function.eq(other));}
+	public FuncValue neq(NumValue other){ return new FuncValue(m_params, m_function.neq(other));}
+	public FuncValue lt(NumValue other){ return new FuncValue(m_params, m_function.lt(other));}
+	public FuncValue leq(NumValue other){ return new FuncValue(m_params, m_function.leq(other));}
+	public FuncValue gt(NumValue other){ return new FuncValue(m_params, m_function.gt(other));}
+	public FuncValue geq(NumValue other){ return new FuncValue(m_params, m_function.geq(other));}
+	public FuncValue neg(){return new FuncValue(m_params, m_function.neg());}
+	public FuncValue not(){return new FuncValue(m_params, m_function.not());}
 }
 
 
@@ -255,6 +269,20 @@ class Func{
 			default:	return "";
 		}
 	}
+	public Func add(NumValue other){return new Func(this, BinOp.ADD, new Func(other));}
+	public Func subtract(NumValue other){return new Func(this, BinOp.SUB, new Func(other));}
+	public Func multiply(NumValue other){return new Func(this, BinOp.MULT, new Func(other));}
+	public Func divide(NumValue other){return new Func(this, BinOp.DIV, new Func(other));}
+	public Func exp(NumValue other){return new Func(this, BinOp.EXP, new Func(other));}
+	public Func mod(NumValue other){return new Func(this, BinOp.MOD, new Func(other));}
+	public Func eq(NumValue other){return new Func(this, BinOp.EQ, new Func(other));}
+	public Func neq(NumValue other){return new Func(this, BinOp.NEQ, new Func(other));}
+	public Func lt(NumValue other){return new Func(this, BinOp.LT, new Func(other));}
+	public Func leq(NumValue other){return new Func(this, BinOp.LEQ, new Func(other));}
+	public Func gt(NumValue other){return new Func(this, BinOp.GT, new Func(other));}
+	public Func geq(NumValue other){return new Func(this, BinOp.GEQ, new Func(other));}
+	public Func neg(){return new Func(UnOp.UMINUS, this);}
+	public Func not(){return new Func(UnOp.NOT, this);}
 
 	private String uopString()
 	{
@@ -348,8 +376,6 @@ class SpecialFunc extends Func
 				return null;
 		}
 	}
-
-	
 }
 
 
