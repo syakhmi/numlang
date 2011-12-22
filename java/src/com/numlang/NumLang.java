@@ -52,7 +52,7 @@ class NumLangException
 		System.err.println("NumLang Error: Invalid Array Index");
 		System.err.println("\tAttempted to reference array element " + index);
 		printstack(2);
-		System.exit(2);
+		System.exit(3);
 	}
 	public void MatrixSizeMismatch(int r1, int c1, int r2, int c2)
 	{
@@ -60,7 +60,7 @@ class NumLangException
 		System.err.println("\tAttempted to perform elementwise operation on:");
 		System.err.println("\tMatrix[" + r1 + ", " + c1 + "] and Matrix[" + r2 + ", " + c2 + "]");
 		printstack(2);
-		System.exit(3);
+		System.exit(4);
 	}
 
 	
@@ -70,7 +70,29 @@ class NumLangException
 		System.err.println("\tAttempted to perform matrix multiplication operation on:");
 		System.err.println("\tMatrix[" + r1 + ", " + c1 + "] and Matrix[" + r2 + ", " + c2 + "]");
 		printstack(2);
-		System.exit(3);
+		System.exit(5);
+	}
+	public void ListToMatrixException(int rows, int columns)
+	{
+		System.err.println("NumLangError: List to Matrix Exception");
+		System.err.println("\tAttempted to make a matrix out of a list of dimension[" + rows + ", " + columns + "]");
+		printstack(2);
+		System.exit(6);
+	}
+	public void ListToMatrixJaggedException(int right, int wrong)
+	{
+		System.err.println("NumLangError: List to Matrix Jagged Exception");
+		System.err.println("\tAttempted to make a matrix out of a list with different sized columns " + right + ", " + wrong);
+		printstack(2);
+		System.exit(7);
+	}
+	public void WrongFuncInputNum(int right, int wrong)
+	{
+		System.err.println("NumLangError: Wrong Function Input Number");
+		System.err.println("\tAttempted to call a function of " + right +
+					" inputs with " + wrong + "inputs");
+		printstack(2);
+		System.exit(8);
 	}
 
 	private void printstack(int tab)

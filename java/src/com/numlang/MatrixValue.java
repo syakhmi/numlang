@@ -17,22 +17,23 @@ public class MatrixValue
 
 	public MatrixValue(ListValue<ListValue<NumValue>> elements)
 	{
-		ListValue<NumValue> temp = elements.convToArray();
+		ListValue<NumValue> temp[] = elements.convToArray();
 		if(temp == null)
 			NumLang.Exception.ListToMatrixException(0, 0);
 		m_rows = temp.length;
 
-		if(temp[0].size() <= 0)
+		if(temp[0].length().getValue().intValue() <= 0)
 			NumLang.Exception.ListToMatrixException(m_rows, 0);
 
-		m_cols = temp[0].size();
+		m_cols = temp[0].length().getValue().intValue();
 		m_elements = new NumValue[m_rows][m_cols];
 		m_elements[0] = temp[0].convToArray();
 
 		for(int i = 1; i < m_rows; i++)
 		{
-			if (temp[i].size() != m_cols)
-				NumLang.Exception.ListToMatrixJaggedException(m_cols, temp[i].size());
+			int tmpcol = temp[i].length().getValue().intValue();
+			if (tmpcol != m_cols)
+				NumLang.Exception.ListToMatrixJaggedException(m_cols, tmpcol);
 			m_elements[i] = temp[i].convToArray();
 		}
 	}

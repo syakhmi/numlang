@@ -153,13 +153,13 @@ expr :
 	| FSIN LPAREN expr RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
 	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
 	| ID LCSUB param_list_call_opt RCSUB	{ Call($1, $3) }
-	| ID list_access			{ Access($1, $2) }
+	| ID list_access			{ Access($1, List.rev $2) }
 	| LBRACKET list_expr_list_opt RBRACKET	{ Litlist(List.rev $2)}
 	| MATRIX matrix_rows_list RBRACKET	{ Litmatrix(List.rev $2) }
 
 list_access:
 	LBRACKET expr RBRACKET					{ [$2] }
-	| list_access LBRACKET expr RBRACKET	{ $1 @ [$3] }
+	| list_access LBRACKET expr RBRACKET	{ $3 :: $1 }
 
 func_param_list:
 	  ID				{ [$1] }
