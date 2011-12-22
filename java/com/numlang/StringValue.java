@@ -61,6 +61,7 @@ public class StringValue {
 	{
 		return new NumValue(new BigRational(this.value));
 	}
+	public String toString(){ return value.toString();}
 
 	private int c_index(NumValue index)
 	{
