@@ -4,7 +4,7 @@
 %token NEWMATRIX MATRIX LIST SEMI COMMA 
 %token PLUS MINUS TIMES DIVIDE EXP MOD MATMULT FLOG FLN FCOS FSIN
 %token ASSIGN EQ NEQ NOT LT LEQ GT GEQ CONCAT
-%token MATCH QMARK DONE CONT LOOP ANY TRUE DEFAULT PASS
+%token MATCH QMARK DONE CONT LOOP ANY TRUE PASS
 %token NUM STRING FUNC SUB CONST EXTERN INCLUDE POINT
 %token EOF
 %token <string>	LITINT
@@ -41,7 +41,7 @@ sdecl:
 /* Defines parameters to a subroutine and basic types*/
 param_list_opt:
 	/*nothing*/			{ [] }
-	| param_list			{List.rev $1}	
+	| param_list			{$1}	
 
 param_list:
 	var_type ID			{ [{	vname = $2;
@@ -53,13 +53,13 @@ param_list:
 
 var_type:
 	basic_type			{ $1 }
-	| var_type LIST	{ List($1, 0) }
+	| var_type LIST	{ List($1) }
 
 basic_type:
 	NUM 				{ Num }
 	| STRING 			{ String }
 	| FUNC				{ Func }
-	| MATRIX			{ Matrix(0, 0) }
+	| MATRIX			{ Matrix }
 
 /* Rules for a statement in a program */
 stmt_list:
@@ -80,7 +80,7 @@ stmt:
 
 /* Rules for match statements */
 match_list:
-	/*nothing*/
+	/*nothing*/				{ [] }
 	| match_list match_cmd  { $2 :: $1 }
 
 match_cmd:
@@ -100,7 +100,6 @@ match_cond:
 	| expr				{ (Meq, $1) }
 	| TRUE				{ (Mneq, Litnum("0")) } 
 	| ANY				{ (Any, Litnum("0")) }
-	| DEFAULT			{ (Default, Litnum("0")) }
 
 match_cmp:
 	NEQ				{ Mneq }
@@ -109,18 +108,13 @@ match_cmp:
 	| GT				{ Mgt }
 	| GEQ				{ Mgeq }
 
-/* Rules for assignment statements */
-assign_lval:
-	  ID				{ ($1, []) }
-	| assign_lval LBRACKET expr RBRACKET
-					{ (fst $1, $3 :: snd $1) }
 assign_stmt:
-	  assign_lval ASSIGN expr SEMI	{ Assign(fst $1,
-						 List.rev (snd $1), $3) }
+	  ID list_access_opt ASSIGN expr SEMI	{ Assign($1,
+						 $2, $4) }
 	| CONST ID ASSIGN expr SEMI	
 					{ Constassign($2, $4) }
-	| EXTERN assign_lval ASSIGN expr SEMI	{ Externassign(fst $2,
-							 List.rev (snd $2), $4) }
+	| EXTERN ID list_access_opt ASSIGN expr SEMI	{ Externassign($2,
+							 $3, $5) }
 
 /* Rules for an expression*/
 expr :
@@ -156,6 +150,10 @@ expr :
 	| ID list_access			{ Access($1, List.rev $2) }
 	| LBRACKET list_expr_list_opt RBRACKET	{ Litlist(List.rev $2)}
 	| MATRIX matrix_rows_list RBRACKET	{ Litmatrix(List.rev $2) }
+
+list_access_opt:
+	/* nothing */					{ [] }
+	| list_access					{ $1 }
 
 list_access:
 	LBRACKET expr RBRACKET					{ [$2] }

@@ -76,7 +76,6 @@ rule token = parse
 	(* Control Flow Match Conditions: Any, True *)
 	| "any"		{ ANY }
 	| "true"	{ TRUE }
-	| "default"	{ DEFAULT }
 	
 	(* Control Flow *)
 
