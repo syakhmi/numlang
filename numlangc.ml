@@ -227,8 +227,8 @@ and c_match_command topexpr matchcommand  =
 			| Ast.Loop -> "continue;"
 	in
     let c_match_expr top_expr cmp mtccommand  =
-		"if(" ^ c_sexpr  top_expr ^ cmp ^ "("
-		^ c_sexpr  mtccommand.smatch_expr ^ "){\n"
+		"if(!(" ^ c_sexpr  top_expr ^ cmp ^ "("
+		^ c_sexpr  mtccommand.smatch_expr ^ ").getValue().isZero())){\n"
 		^ c_sstmt  mtccommand.smatch_stmt
 		^ c_match_flow mtccommand ^ "}\n"
 	in
