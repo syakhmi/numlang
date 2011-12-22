@@ -115,6 +115,18 @@ and c_matrix ell =
 	let cel = List.map (fun el -> "{" ^ String.concat "," el ^ "}") cell in
 	"(new MatrixValue(new NumValue[][]{" ^ String.concat "," cel ^ "})"
 
+and c_listaccess s depth il =
+	let cil = List.map (fun x -> c_sexpr  x) il in
+		match cil with
+			[] -> depth_to_us depth ^ s ^ ";\n"
+			| hd::[] -> depth_to_us depth ^ s ^ ".get(" ^ hd ^ ");\n"
+			| hd::tl ->  depth_to_us depth ^ s ^ c_mdlaccess cil
+
+and c_mdlaccess cil  =
+	match cil with
+		hd::tl -> ".get(" ^ hd ^ ")" ^ c_mdlaccess tl
+		| _ -> ""
+
 and depth_to_us depth =
 	if depth = 0 then "" else "_" ^ depth_to_us (depth-1)
 
@@ -185,8 +197,8 @@ and c_sexpr  expression =
 				| Sast.Call(name, el) -> c_scall name el typ
 				| Sast.FCall(name, depth, el) -> c_fcall name depth el 
 				| Sast.Funarg(i) -> ""
-				| Sast.Listaccess(s, el) -> ""
-				| Sast.Mataccess(s, el) -> ""
+				| Sast.Listaccess(s, depth, el) -> c_listaccess s depth el
+				| Sast.Mataccess(s, depth, el) -> c_listaccess s depth el
 				| _ -> ""
 
 and c_block sl  =

@@ -178,14 +178,14 @@ and check_access s el env =
 					if (List.length sel) <> 2 || nums <> 1 then
 						raise (Error("Invalid Matrix Access!"))
 					else
-						Sast.Expr(Sast.Mataccess(s, sel), Ast.Num)
+						Sast.Expr(Sast.Mataccess(s, depth, sel), Ast.Num)
 				| Ast.List(typ) ->
 					let length = List.length sel in
 					if length > (1 + (num_nested_lists typ)) || nums <> 1 then
 						raise (Error("Invalid List Access!"))
 					else
 						let typ = list_access_type typ (length - 1) in
-						Sast.Expr(Sast.Listaccess(s, sel), typ)
+						Sast.Expr(Sast.Listaccess(s, depth, sel), typ)
 				| _ -> raise (Error("Invalid element access!")))
 
 and check_id name env =
