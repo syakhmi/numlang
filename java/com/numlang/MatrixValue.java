@@ -15,13 +15,14 @@ public class MatrixValue
 		m_elements = elements;
 	}
 	public MatrixValue(int rows, int cols)
+	{
 		m_rows = rows;
 		m_cols = cols;
 		m_elements = new NumValue[rows][cols];
 		for(int i = 0; i < m_rows; i++)
 			for(int j = 0; j < m_cols; j++)
 				m_elements[i][j] = new NumValue(new BigRational(0));
-
+	}
 	public MatrixValue(ListValue<ListValue<NumValue>> elements)
 	{
 		ListValue<NumValue> temp[] = elements.convToArray();
@@ -536,7 +537,7 @@ public class MatrixValue
         {   
                 int i = NumLang.Func.floor(index).getValue().intValue();
                 
-		if(bcol && (i < 0 || i >= m_cols)
+		if(bcol && (i < 0 || i >= m_cols))
 			NumLang.Exception.InvalidMatrixIndex(i);
 		else if (i < 0 || i >= m_rows)
                         NumLang.Exception.InvalidMatrixIndex(i);

@@ -54,6 +54,13 @@ class NumLangException
 		printstack(2);
 		System.exit(3);
 	}
+	public void InvalidMatrixIndex(int index)
+	{
+		System.err.println("NumLang Error: Invalid Matrix Index");
+		System.err.println("\tAttempted to reference matrix element " + index);
+		printstack(2);
+		System.exit(3);
+	}
 	public void MatrixSizeMismatch(int r1, int c1, int r2, int c2)
 	{
 		System.err.println("NumLang Error: Matrix Size Mismatch");
@@ -129,6 +136,15 @@ class NumLangIO
 	private Scanner input;
 
 	public NumLangIO(){input = new Scanner(System.in);}
+
+	public StringValue scanln()
+	{
+		return new StringValue(input.nextLine());
+	}
+	public StringValue scan()
+	{
+		return new StringValue(input.next());
+	}
 	
 	public void print(String str) {
 		System.out.print(str);
