@@ -11,29 +11,30 @@ and c_evalparams expr_list =
        let vartype ex_list =
 		match List.fold_left (fun a b ->
 			match b with
-				Sast.Expr(_, typ) -> if (typ = Ast.Func) then Ast.Func else a
+				Sast.Expr(e, typ) -> if (typ = Ast.Func) then Ast.Func 
+				else match e with Sast.Funarg(i) -> Ast.Func | _ -> a
 		) Ast.Num expr_list with
 			Ast.Func -> "new FuncValue.Func[]{"
 			| _ -> "new NumValue[]{"
        in
-       vartype expr_list ^ List.fold_left (fun a b -> a ^ ", " ^ c_sexpr b) (c_sexpr (List.hd expr_list)) (List.tl expr_list) ^ "}"
+       vartype expr_list ^ List.fold_left (fun a b -> a ^ ", " ^ c_sfexpr b) (c_sfexpr (List.hd expr_list)) (List.tl expr_list) ^ "}"
 
 and c_ffcall name depth exprlist = 
 	match name with
-		"sin" -> "(new FuncValue.SpecialType(SpecialType.SIN, new Func("
+		"sin" -> "(new FuncValue.SpecialType(SpecialType.SIN, new FuncValue.Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
-		| "cos" -> "(new FuncValue.SpecialFunc(SpecialType.COS, new Func("
+		| "cos" -> "(new FuncValue.SpecialFunc(SpecialType.COS, new FuncValue.Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
-		| "log" -> "(new FuncValue.SpecialFunc(SpecialType.LOG, new Func("
+		| "log" -> "(new FuncValue.SpecialFunc(SpecialType.LOG, new FuncValue.Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
-		| "ln" -> "(new FuncValue.SpecialFunc(SpecialType.LN, new Func("
+		| "ln" -> "(new FuncValue.SpecialFunc(SpecialType.LN, new FuncValue.Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
-		| "floor" -> "(new FuncValue.SpecialFunc(SpecialType.FLOOR, new Func("
+		| "floor" -> "(new FuncValue.SpecialFunc(SpecialType.FLOOR, new FuncValue.Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
-		| "ceil" -> "(new FuncValue.SpecialFunc(SpecialType.CEIL, new Func("
+		| "ceil" -> "(new FuncValue.SpecialFunc(SpecialType.CEIL, new FuncValue.Func("
 			^ c_sexpr (List.hd exprlist) ^ ")))"
-		| _ -> "(" ^ (depth_to_us depth) ^ name ^ ".evaluate("
-			^ c_evalparams exprlist ^ "))"
+		| _ -> "(new FuncValue.Func(" ^ (depth_to_us depth) ^ name ^ ".value().evaluate("
+			^ c_evalparams exprlist ^ ")))"
 
 and c_binop e1 bop e2  =
 	let e1 = c_sexpr  e1 in
@@ -81,8 +82,8 @@ and c_unop uop e  =
 and c_funop uop e  =
 	let e = c_sfexpr  e in
 	match uop with
-		Ast.Uminus -> "(new Func(UnOp.UMINUS, " ^ e ^ "))"
-		| Ast.Not -> "(new Func(UnOp.NOT, " ^ e ^ "))"
+		Ast.Uminus -> "(new FuncValue.Func(FuncValue.UnOp.UMINUS, " ^ e ^ "))"
+		| Ast.Not -> "(new FuncValue.Func(FuncValue.UnOp.NOT, " ^ e ^ "))"
 
 and c_litnum s  =
 	"(new NumValue(new BigRational(\"" ^ s ^ "\")))"
@@ -151,6 +152,8 @@ and c_scall name el typ  =
 			c_sexpr (List.hd el) ^ ".remove(" ^ c_sexpr (List.hd (List.tl el)) ^ ")"			
 		| "str" ->
 			"(new StringValue(" ^ c_args el ^ "))"
+		| "str_func" ->
+			"(new StringValue(" ^ c_args el ^ "))"
 		| "num" ->
 			c_args el ^ ".toNum()"
 		| "scanln" ->
@@ -162,8 +165,14 @@ and c_scall name el typ  =
 		| _ ->
 			"((" ^ drop_Ast typ ^ ")" ^ name ^ ".invoke(" ^ c_args el ^ "))"
 
+
+and c_cevalparams expr_list =
+       "new NumValue[]{" ^ List.fold_left (fun a b -> a ^ ", " ^ c_sexpr b) (c_sexpr (List.hd expr_list)) (List.tl expr_list) ^ "}"
+
+
 and c_fcall name depth el  =
-    "func.evaluate"
+    "(" ^ (depth_to_us depth) ^ name ^ ".value().evaluate("
+			^ c_cevalparams el ^ "))"
 
 and c_sfexpr expression =
 	match expression with
@@ -171,6 +180,7 @@ and c_sfexpr expression =
 			match ex with
 				Sast.Funarg(i) -> "(new FuncValue.Func(" ^ string_of_int i ^ "))"
 				| Sast.Litnum(s) -> "(new FuncValue.Func(" ^ c_litnum s ^ "))"
+				| Sast.Id(name, depth) -> "(new FuncValue.Func(" ^ c_id name depth ^ "))"
 				| Sast.Binop(e1, op, e2) -> c_fbinop e1 op e2
 				| Sast.Unop(op, e) -> c_funop op e
 				| Sast.FCall(s, depth, el) -> c_ffcall s depth el

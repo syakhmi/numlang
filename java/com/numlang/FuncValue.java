@@ -10,7 +10,7 @@ public class FuncValue{
 	
 	public static enum BinOp {	ADD, SUB, MULT, DIV, EXP, MOD,
 		EQ, NEQ, LT, LEQ, GT, GEQ};
-		enum UnOp  {	UMINUS, NOT};
+	public static enum UnOp  {	UMINUS, NOT};
 
 	public FuncValue()
 	{
@@ -149,6 +149,16 @@ public class FuncValue{
 		{
 			m_type =  FuncType.CONST;
 			m_value = value;
+		}
+		public Func(Func other)
+		{
+			m_type = other.m_type;
+			m_value = other.m_value;
+			m_left = other.m_left;
+			m_right = other.m_right;
+			m_index = other.m_index;
+			m_bop = other.m_bop;
+			m_uop = other.m_uop;
 		}
 		public Func copy()
 		{
