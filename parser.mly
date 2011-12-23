@@ -143,8 +143,8 @@ expr :
 	| LPAREN expr RPAREN			{ $2 }
 	| FLOG LPAREN expr RPAREN	{ FCall(KeyFuncCall(Flog, $3))}
 	| FLN LPAREN expr RPAREN	{ FCall(KeyFuncCall(Fln, $3))}
-	| FCOS LPAREN expr RPAREN	{ FCall(KeyFuncCall(Fsin, $3))}
-	| FSIN LPAREN expr RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
+	| FCOS LPAREN expr RPAREN	{ FCall(KeyFuncCall(Fcos, $3))}
+	| FSIN LPAREN expr RPAREN	{ FCall(KeyFuncCall(Fsin, $3))}
 	| ID LPAREN param_list_call RPAREN	{ FCall(FuncCall($1, $3))}
 	| ID LCSUB param_list_call_opt RPAREN	{ Call($1, $3) }
 	| NUM LCSUB param_list_call_opt RPAREN	{ Call("num", $3)}
@@ -188,8 +188,8 @@ func_expr:
 	| LPAREN func_expr RPAREN		{ $2 }
 	| FLOG LPAREN func_expr RPAREN	{ FFCall(FKeyFuncCall(Flog, $3))}
 	| FLN LPAREN func_expr RPAREN	{ FFCall(FKeyFuncCall(Fln, $3))}
-	| FCOS LPAREN func_expr RPAREN	{ FFCall(FKeyFuncCall(Fsin, $3))}
-	| FSIN LPAREN func_expr RPAREN	{ FFCall(FKeyFuncCall(Fcos, $3))}
+	| FCOS LPAREN func_expr RPAREN	{ FFCall(FKeyFuncCall(Fcos, $3))}
+	| FSIN LPAREN func_expr RPAREN	{ FFCall(FKeyFuncCall(Fsin, $3))}
 	| ID LPAREN fparam_list_call RPAREN	{ FFCall(FFuncCall($1, $3))}
 
 param_list_call_opt:

@@ -335,7 +335,7 @@ public class FuncValue{
 
 	public static class SpecialFunc extends Func
 	{
-		public enum SpecialType {SIN, COS, LN, LOG, CEIL, FLOOR};
+		public static enum SpecialType {SIN, COS, LN, LOG, CEIL, FLOOR};
 
 		public Func		 m_func;
 		public SpecialType	 m_utype;

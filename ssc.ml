@@ -33,18 +33,22 @@ let convert_vdecl decl =
 
 let new_symbol_table parent l =
     {parent = Some(parent); variables = [
+        {name="floor";const=true;var_type=Ast.Func;return_type=None;args=None};
+        {name="ceil";const=true;var_type=Ast.Func;return_type=None;args=None};
         {name="log";const=true;var_type=Ast.Func;return_type=None;args=None};
         {name="ln";const=true;var_type=Ast.Func;return_type=None;args=None};
         {name="cos";const=true;var_type=Ast.Func;return_type=None;args=None};
-        {name="log";const=true;var_type=Ast.Func;return_type=None;args=None}
+        {name="sin";const=true;var_type=Ast.Func;return_type=None;args=None}
 
 ]@l; depth = parent.depth + 1}
 
 let predefined_funcs = [
-	{name="log";const=true;var_type=Ast.Func;return_type=None;args=None};
+    {name="floor";const=true;var_type=Ast.Func;return_type=None;args=None};
+    {name="ceil";const=true;var_type=Ast.Func;return_type=None;args=None};
+    {name="log";const=true;var_type=Ast.Func;return_type=None;args=None};
     {name="ln";const=true;var_type=Ast.Func;return_type=None;args=None};
     {name="cos";const=true;var_type=Ast.Func;return_type=None;args=None};
-    {name="log";const=true;var_type=Ast.Func;return_type=None;args=None}
+    {name="sin";const=true;var_type=Ast.Func;return_type=None;args=None}
 ]
 
 let predefined_subs = [
@@ -422,7 +426,7 @@ and check_fcall fcall env =
 				Ast.Flog -> Sast.Expr(Sast.FCall("log", 0, [e]), Ast.Num)
 				| Ast.Fln -> Sast.Expr(Sast.FCall("ln", 0, [e]), Ast.Num)
 				| Ast.Fcos -> Sast.Expr(Sast.FCall("cos", 0, [e]), Ast.Num)
-				| Ast.Fsin -> Sast.Expr(Sast.FCall("log", 0, [e]), Ast.Num))
+				| Ast.Fsin -> Sast.Expr(Sast.FCall("sin", 0, [e]), Ast.Num))
 		| Ast.FuncCall(s, el) ->
 			let (vdecl, depth) = try
 				find_variable env.scope s
@@ -450,7 +454,7 @@ and check_ffcall l fcall env =
 				Ast.Flog -> Sast.Expr(Sast.FCall("log", 0, [e]), Ast.Num)
 				| Ast.Fln -> Sast.Expr(Sast.FCall("ln", 0, [e]), Ast.Num)
 				| Ast.Fcos -> Sast.Expr(Sast.FCall("cos", 0, [e]), Ast.Num)
-				| Ast.Fsin -> Sast.Expr(Sast.FCall("log", 0, [e]), Ast.Num))
+				| Ast.Fsin -> Sast.Expr(Sast.FCall("sin", 0, [e]), Ast.Num))
 		| Ast.FuncCall(s, el) ->
 			let (vdecl, depth) = try
 				find_variable env.scope s
