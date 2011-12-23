@@ -122,10 +122,11 @@ and c_listaccess s depth il =
 			| hd::tl ->  depth_to_us depth ^ s ^ ".value()" ^ c_mdlaccess cil
 
 and c_mdlaccess cil  =
-	match cil with
+	".get(((NumValue)" ^ List.hd cil ^ ").subtract(new NumValue(new BigRational(1))), ((NumValue)" ^ List.hd (List.tl cil) ^ ").subtract(new NumValue(new BigRational(1))))"
+(*	match cil with
 		hd::tl -> ".get(" ^ hd ^ ".subtract(new NumValue(new BigRational(\"1\"))))" ^ c_mdlaccess tl
 		| _ -> ""
-
+*)
 and depth_to_us depth =
 	if depth = 0 then "" else "_" ^ depth_to_us (depth-1)
 
@@ -222,13 +223,14 @@ and c_assign name depth il e  =
 		| hd::tl ->  depth_to_us depth ^ name ^ ".value()" ^ mdl_assign cil e
 
 and mdl_assign il e  =
-	match il with
+	".set(((NumValue)" ^ List.hd il ^ ").subtract(new NumValue(new BigRational(1))), ((NumValue)" ^ List.hd (List.tl il) ^ ").subtract(new NumValue(new BigRational(1))), ((NumValue)" ^ c_sexpr e ^ "));"
+	(*match il with
 		hd::tl -> ".get(" ^ hd ^ ".subtract(new NumValue(new BigRational(\"1\"))))" ^
 			(match tl with
 				h::[] -> ".set(" ^ h ^ ".subtract(new NumValue(new BigRational(\"1\"))), " ^ c_sexpr  e ^ ");\n"
 				| h::t -> mdl_assign tl e 
 				| _ -> "")
-		| _ -> ""
+		| _ -> ""*)
 
 and c_vdecl name depth e  =
 	match e with Sast.Expr(_, typ) ->

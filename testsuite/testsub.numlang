@@ -1,20 +1,28 @@
-myStr = "";
-nummm = 0;
-
-match(num)
+sub mySub(num x)
 {
-	any ? myStr = myStr . str::(nummm);
-	any ? println::(myStr);
-	loop: < 9 ? nummm = nummm + 1;
+	x + 1;
 }
 
-nummm = 1;
-
-match(nummm)
+sub world_this_string(string x)
 {
-	any ? println::(myStr[nummm]);
-	loop < 10 ? nummm = nummm + 1;
+	x . " World";
 }
 
-nm = num::(myStr) + 4;
-println::(str::nm);
+sub mod_func_plus_x(func x)
+{
+	temp = |x| -> |x|;
+	x + temp;
+}
+
+sub gettwobytwomatrixofones()
+{
+	mat = m::(2, 2);
+	mat[1][1] = 1;
+	mat[1][2] = 1;
+	mat[2][1] = 1;
+	mat[2][2] = 1;
+	mat;
+}
+mm = gettwobytwomatrixofones::();
+println::("" . str::(mm[1][1]) . ", " . str::(mm[1][2]) . ", " . str::(mm[2][1]) . ", " . str::(mm[2][2]));
+println::("Done");
