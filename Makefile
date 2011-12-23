@@ -37,6 +37,13 @@ all: $(SCANNER) $(PARSER)
 	$(OCC) $(OCCOPTS) $(SC).ml
 	$(OCC) $(OCCOPTS) $(NC).ml
 	$(OCC) -o $(NC) $(PB).cmo $(SB).cmo $(SC).cmo $(NC).cmo $(SAB).cmo
+	-rm $(SCANL)
+	-rm $(PARSL)
+	-rm $(PARSI)
+	-rm *.cmi
+	-rm *.cmo
+	-rm parser.output
+
 
 debug: $(SCANNER) $(PARSER)
 	$(OCL) $(OCLOPTS) $(SCANNER)
@@ -56,6 +63,5 @@ clean: $(SCANL) $(PARSL) $(PARSI)
 	-rm $(PARSI)
 	-rm *.cmi
 	-rm *.cmo
-#	-rm ssc
 	-rm parser.output
 	-rm $(NC)

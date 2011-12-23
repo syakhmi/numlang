@@ -51,6 +51,7 @@ let predefined_subs = [
 	{name="str";const=true;var_type=Ast.Subr;return_type=Some(Ast.String);args=Some([{name="";const=false;var_type=Ast.Num;return_type=None;args=None}])};
 	{name="num";const=true;var_type=Ast.Subr;return_type=Some(Ast.Num);args=Some([{name="";const=false;var_type=Ast.String;return_type=None;args=None}])};
 	{name="scanln";const=true;var_type=Ast.Subr;return_type=Some(Ast.String);args=Some([])};
+	{name="scan";const=true;var_type=Ast.Subr;return_type=Some(Ast.String);args=Some([])};
 	{name="print";const=true;var_type=Ast.Subr;return_type=Some(Ast.String);args=Some([{name="";const=false;var_type=Ast.String;return_type=None;args=None}])};
 	{name="println";const=true;var_type=Ast.Subr;return_type=Some(Ast.String);args=Some([{name="";const=false;var_type=Ast.String;return_type=None;args=None}])};
 	{name="m";const=true;var_type=Ast.Subr;return_type=Some(Ast.Matrix);args=Some([{name="";const=false;var_type=Ast.Num;return_type=None;args=None};{name="";const=false;var_type=Ast.Num;return_type=None;args=None}])}

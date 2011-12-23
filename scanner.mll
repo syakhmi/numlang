@@ -16,7 +16,7 @@ rule token = parse
 	| '['		{ LBRACKET }
 	| ']'		{ RBRACKET }
 	| '|'		{ PIPE }
-	| "<<"		{ LCSUB }
+	| "::("		{ LCSUB }
 	| ">>"		{ RCSUB }
 
 	

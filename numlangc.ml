@@ -155,6 +155,8 @@ and c_scall name el typ  =
 			c_args el ^ ".toNum()"
 		| "scanln" ->
 			"NumLang.IO.scanln()"
+		| "scan" ->
+			"NumLang.IO.scan()"
 		| "m" ->
 			"(new MatrixValue(" ^ c_args el ^ "))"
 		| _ ->
