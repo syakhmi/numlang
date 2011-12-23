@@ -259,7 +259,7 @@ and check_binop e1 op e2 env =
 		match e2 with
         	Sast.Expr(_, t2) ->
     			(* Case for +,-,*,%,/,^ operators *)
-    			if op = Ast.Add || op = Ast.Sub|| op = Ast.Mult || op = Ast.Mod || op = Ast.Exp then
+    			if op = Ast.Add || op = Ast.Sub|| op = Ast.Mult || op = Ast.Div || op = Ast.Mod || op = Ast.Exp then
         			if (t1 = Ast.Matrix && (t2 = Ast.Num || t2 = Ast.Matrix))|| (t2 = Ast.Matrix && t1 = Ast.Num) then
             			Sast.Expr(Sast.Binop(e1, op, e2), Ast.Matrix)
             		else if (t1 = Ast.Num && t2 = Ast.Num) then
@@ -269,6 +269,7 @@ and check_binop e1 op e2 env =
             		else match op with
 						Ast.Add -> raise (Error("Illegal Addition!"))
 						| Ast.Sub -> raise (Error("Illegal Subtraction!"))
+						| Ast.Div -> raise (Error("Illegal Division!"))
 						| Ast.Mult -> raise (Error("Illegal Multiplication!"))
 						| Ast.Mod -> raise (Error("Illegal Modulus!"))
 						| Ast.Exp -> raise (Error("Illegal Exponent!"))
