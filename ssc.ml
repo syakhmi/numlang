@@ -306,6 +306,10 @@ and check_binop e1 op e2 env =
 					else (match t1 with 
 						Ast.List(vartype) -> (match t2 with 
 							Ast.List(vartype) -> Sast.Expr(Sast.Binop(e1, op, e2), Ast.List(vartype))
+							| vartype -> Sast.Expr(Sast.Binop(e1, op, e2), Ast.List(vartype))
+							| _ -> raise (Error("Illegal List Concatenation!")))
+						| vartype -> (match t2 with
+							Ast.List(vartype) -> Sast.Expr(Sast.Binop(e1, op, e2), Ast.List(vartype))
 							| _ -> raise (Error("Illegal List Concatenation!")))
 						| _ -> raise (Error("Illegal Concatenation!")))					
 						
@@ -415,6 +419,14 @@ and check_scall name args env =
 					| _ -> raise (Error("Pop requires a List as its argument"))
 			else
 				raise (Error("Incorrect number of args supplied to sub identifier " ^ name))
+		| "len" ->
+			if (List.length sargs) = 1 then
+				match(List.hd sargs) with
+					Sast.Expr(_, String) -> Sast.Expr(Sast.Call(name, sargs), Num)
+					| Sast.Expr(_, List(typ)) -> Sast.Expr(Sast.Call(name, sargs), Num)
+					| _ -> raise (Error("len requires a List or String argument"))
+			else
+				raise (Error("Incorrect number of args subblied to sub identifier " ^ name))
 		| _ -> raise (Error("Undeclared sub identifier " ^ name)))
 
 and check_fcall fcall env =

@@ -113,6 +113,14 @@ public static class NumLangException
 		printstack(2);
 		System.exit(8);
 	}
+	public void BadStringToNum(String badstring)
+	{
+		System.err.println("NumLangError: Bad String To Num");
+		System.err.println("\tAttempted to convert the string \""
+			+ badstring + "\" to a num.");
+		printstack(2);
+		System.exit(9);
+	}
 
 	private void printstack(int tab)
 	{
@@ -158,12 +166,14 @@ public static class NumLangIO
 		return new StringValue(input.next());
 	}
 	
-	public void print(StringValue str) {
+	public StringValue print(StringValue str) {
 		System.out.print(str.toString());
+		return str;
 	}
 
-	public void println(StringValue str) {
+	public StringValue println(StringValue str) {
 		System.out.println(str.toString());
+		return str;
 	}
 }
 

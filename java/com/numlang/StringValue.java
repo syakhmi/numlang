@@ -1,6 +1,7 @@
 package com.numlang;
 
 import com.numlang.*;
+import java.lang.Exception;
 
 public class StringValue {
 	private String value;
@@ -63,7 +64,16 @@ public class StringValue {
 	}
 	public NumValue toNum()
 	{
-		return new NumValue(new BigRational(this.value));
+		try
+		{
+			NumValue x = new NumValue(new BigRational(this.value));
+			return x;
+		}
+		catch(Exception e)
+		{
+			NumLang.Exception.BadStringToNum(this.value);	
+		}
+		return null;
 	}
 	public String toString(){ return value.toString();}
 

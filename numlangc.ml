@@ -162,8 +162,10 @@ and c_scall name el typ  =
 			"NumLang.IO.scan()"
 		| "m" ->
 			"(new MatrixValue(" ^ c_args el ^ "))"
+		| "len" ->
+			"(" ^ c_sexpr (List.hd el)  ^ ".length())"
 		| _ ->
-			"((" ^ drop_Ast typ ^ ")" ^ name ^ ".invoke(" ^ c_args el ^ "))"
+			(*"((" ^ drop_Ast typ ^ ")" ^*) name ^ ".invoke(" ^ c_args el ^ ")"
 
 
 and c_cevalparams expr_list =
@@ -213,8 +215,9 @@ and c_block sl  =
 
 and c_assign name depth il e  =
 	let cil = List.map (fun x -> c_sexpr  x) il in
+	let typ = match e with Sast.Expr(ex, t) -> drop_Ast t | _ -> "" in
 	match cil with
-		[] -> depth_to_us depth ^ name ^ ".assign(" ^ c_sexpr  e ^ ");\n"
+		[] -> depth_to_us depth ^ name ^ ".assign((" ^ typ ^ ")"  ^ c_sexpr  e ^ ");\n"
 		| hd::[] -> depth_to_us depth ^ name ^ ".value().set(" ^ hd ^ ".subtract(new NumValue(new BigRational(\"1\"))), " ^ c_sexpr  e ^ ");\n"
 		| hd::tl ->  depth_to_us depth ^ name ^ ".value()" ^ mdl_assign cil e
 
@@ -229,7 +232,7 @@ and mdl_assign il e  =
 
 and c_vdecl name depth e  =
 	match e with Sast.Expr(_, typ) ->
-		"final Var<" ^ drop_Ast typ ^ "> " ^ depth_to_us depth ^ name ^ " = " ^ "new Var<" ^ drop_Ast typ ^ ">(" ^ c_sexpr  e ^ ");\n"
+		"final Var<" ^ drop_Ast typ ^ "> " ^ depth_to_us depth ^ name ^ " = " ^ "new Var<" ^ drop_Ast typ ^ ">((" ^ drop_Ast typ ^ ")" ^ c_sexpr  e ^ ");\n"
 
 and c_match_command topexpr matchcommand  =
 	let c_match_flow matchcommand =
