@@ -644,7 +644,12 @@ and check_block l env =
     Sast.Block(sl)
 
 and check_sub s vdcll stml env =
-    match env.scope.parent with
+    match s with 
+	"rm" ->    raise(Error("Cannot declare rm, rm is a built-in NumLang function"))
+	| "rmi" -> raise(Error("Cannot declare rmi, rmi is a built-in NumLang function"))
+	| "pop" -> raise(Error("Cannot declare pop, pop is a built-in NumLang function"))
+	| "len" -> raise(Error("Cannot declare len, len is a built-in NumLang function"))
+	| _ ->(   match env.scope.parent with
 		Some(parent) -> raise (Error("Cannot declare sub " ^ s ^ " in nested scope"))
 		| _ ->
 			try
@@ -660,7 +665,7 @@ and check_sub s vdcll stml env =
 						let vdecl = {name=s;const=true;var_type=Ast.Subr;return_type=Some(t);args=Some(converted_vdecl)} in
 						env.scope.variables <- vdecl::env.scope.variables;
 						Sast.Subdecl(s, vdcll, sl@[last])
-					| _ -> raise (Error("No return value in  " ^ s ^ "!"))
+					| _ -> raise (Error("No return value in  " ^ s ^ "!")))
 
 and check_stmt env = function
     Ast.Block(l) -> check_block l env
