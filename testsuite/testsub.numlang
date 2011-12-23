@@ -1,0 +1,20 @@
+myStr = "";
+nummm = 0;
+
+match(num)
+{
+	any ? myStr = myStr . str::(nummm);
+	any ? println::(myStr);
+	loop: < 9 ? nummm = nummm + 1;
+}
+
+nummm = 1;
+
+match(nummm)
+{
+	any ? println::(myStr[nummm]);
+	loop < 10 ? nummm = nummm + 1;
+}
+
+nm = num::(myStr) + 4;
+println::(str::nm);

@@ -1,0 +1,9 @@
+myStr = "";
+nummm = 0;
+
+match(nummm)
+{
+	cont: any ? myStr = myStr . str::(nummm);
+	any ? println::(myStr);
+	loop: < 9 ? nummm = nummm + 1;
+}
